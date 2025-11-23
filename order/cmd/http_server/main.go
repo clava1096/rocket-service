@@ -239,7 +239,7 @@ func convertPaymentMethod(openAPI orderV1.PaymentMethod) (paymentv1.PaymentMetho
 	}
 }
 
-func (h *OrderHandler) NewError(ctx context.Context, err error) *orderV1.GenericErrorStatusCode {
+func (h *OrderHandler) NewError(_ context.Context, err error) *orderV1.GenericErrorStatusCode {
 	return &orderV1.GenericErrorStatusCode{
 		StatusCode: 500,
 		Response: orderV1.GenericError{
@@ -254,6 +254,7 @@ func main() {
 		log.Printf("Application failed: %v", err)
 		os.Exit(1)
 	}
+
 }
 
 func run() error {

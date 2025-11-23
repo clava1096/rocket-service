@@ -3,8 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	"log"
 	"net"
 	"net/http"
@@ -17,6 +15,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/google/uuid"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	m "github.com/clava1096/rocket-service/order/internal/middleware"
 	orderV1 "github.com/clava1096/rocket-service/shared/pkg/openapi/order/v1"
@@ -112,7 +112,6 @@ func (h *OrderHandler) CreateOrderRequest(ctx context.Context, req *orderV1.Crea
 			Uuids: req.PartsUUID,
 		},
 	})
-
 	if err != nil {
 		log.Printf("Inventory service call failed: %v", err)
 		return &orderV1.InternalServerError{
@@ -154,9 +153,6 @@ func (h *OrderHandler) CreateOrderRequest(ctx context.Context, req *orderV1.Crea
 		Status:     orderV1.OrderStatusPENDINGPAYMENT,
 		TotalPrice: totalPrice,
 	}
-	log.Print(order)
-	log.Print(order.GetOrderUUID())
-
 	if err = h.store.newOrder(order); err != nil {
 		log.Printf("Failed to save order %s: %v", order.GetOrderUUID(), err)
 		return &orderV1.InternalServerError{
@@ -186,7 +182,6 @@ func (h *OrderHandler) OrderPayment(ctx context.Context, req *orderV1.PayOrderRe
 	orderUUID := params.OrderUUID
 	order := h.store.getOrder(orderUUID)
 	if order == nil {
-
 		return &orderV1.NotFoundError{
 			Code:    404,
 			Message: "Order :'" + orderUUID + "' was not found!",
@@ -205,6 +200,11 @@ func (h *OrderHandler) OrderPayment(ctx context.Context, req *orderV1.PayOrderRe
 		UserUuid:      order.GetUserUUID().String(),
 		PaymentMethod: paymentMethod,
 	})
+	if err != nil {
+		return &orderV1.InternalServerError{
+			Message: "Something went wrong",
+		}, nil
+	}
 
 	txnUUID, err := uuid.Parse(payResp.TransactionUuid)
 	if err != nil {
@@ -217,7 +217,7 @@ func (h *OrderHandler) OrderPayment(ctx context.Context, req *orderV1.PayOrderRe
 	order.TransactionUUID = orderV1.NewOptNilUUID(txnUUID)
 	order.PaymentMethod = orderV1.NewOptPaymentMethod(req.PaymentMethod)
 
-	order = h.store.updateOrder(order)
+	h.store.updateOrder(order)
 
 	return &orderV1.PayOrderResponse{TransactionUUID: uuid.MustParse(payResp.TransactionUuid)}, nil
 }
@@ -252,7 +252,7 @@ func (h *OrderHandler) NewError(ctx context.Context, err error) *orderV1.Generic
 func main() {
 	storage := NewOrderStorage()
 
-	//grpc inventory
+	// grpc inventory
 	connInventory, err := grpc.NewClient(
 		inventoryGrpcPort,
 		grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -267,7 +267,7 @@ func main() {
 		}
 	}()
 
-	//grpc payment
+	// grpc payment
 	connPayment, err := grpc.NewClient(
 		paymentGrpcPort,
 		grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -288,7 +288,8 @@ func main() {
 
 	storageServer, err := orderV1.NewServer(orderHandler)
 	if err != nil {
-		log.Fatalf("Error creating OpenApi server: %v", err)
+		log.Printf("Error creating OpenApi server: %v", err)
+		os.Exit(1)
 	}
 
 	r := chi.NewRouter()

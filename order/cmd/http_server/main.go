@@ -250,35 +250,42 @@ func (h *OrderHandler) NewError(ctx context.Context, err error) *orderV1.Generic
 }
 
 func main() {
+	if err := run(); err != nil {
+		log.Printf("Application failed: %v", err)
+		os.Exit(1)
+	}
+}
+
+func run() error {
 	storage := NewOrderStorage()
 
-	// grpc inventory
+	// Подключение к InventoryService
 	connInventory, err := grpc.NewClient(
-		inventoryGrpcPort,
-		grpc.WithTransportCredentials(insecure.NewCredentials()))
+		"localhost"+inventoryGrpcPort,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
 	if err != nil {
-		log.Printf("failed to connect: %v\n", err)
-		return
+		log.Printf("Failed to connect to inventory service: %v", err)
+		return err
 	}
-
 	defer func() {
 		if cerr := connInventory.Close(); cerr != nil {
-			log.Printf("failed to close connection: %v\n", cerr)
+			log.Printf("Failed to close inventory connection: %v", cerr)
 		}
 	}()
 
-	// grpc payment
+	// Подключение к PaymentService
 	connPayment, err := grpc.NewClient(
-		paymentGrpcPort,
-		grpc.WithTransportCredentials(insecure.NewCredentials()))
+		"localhost"+paymentGrpcPort,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
 	if err != nil {
-		log.Printf("failed to connect: %v\n", err)
-		return
+		log.Printf("Failed to connect to payment service: %v", err)
+		return err
 	}
-
 	defer func() {
 		if cerr := connPayment.Close(); cerr != nil {
-			log.Printf("failed to close connection: %v\n", cerr)
+			log.Printf("Failed to close payment connection: %v", cerr)
 		}
 	}()
 
@@ -288,8 +295,8 @@ func main() {
 
 	storageServer, err := orderV1.NewServer(orderHandler)
 	if err != nil {
-		log.Printf("Error creating OpenApi server: %v", err)
-		os.Exit(1)
+		log.Printf("Error creating OpenAPI server: %v", err)
+		return err
 	}
 
 	r := chi.NewRouter()
@@ -297,7 +304,6 @@ func main() {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(10 * time.Second))
 	r.Use(m.RequestLogger)
-
 	r.Mount("/", storageServer)
 
 	server := &http.Server{
@@ -307,10 +313,9 @@ func main() {
 	}
 
 	go func() {
-		log.Println("Starting server on " + httpPort)
-		err = server.ListenAndServe()
-		if err != nil {
-			log.Fatalf("Error starting HTTP server: %v", err)
+		log.Printf("Starting server on %s", httpPort)
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Printf("HTTP server error: %v", err)
 		}
 	}()
 
@@ -318,12 +323,14 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 	log.Println("Shutting down server...")
+
 	ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
 	defer cancel()
 
-	err = server.Shutdown(ctx)
-	if err != nil {
-		log.Fatalf("Error shutting down server: %v", err)
+	if err := server.Shutdown(ctx); err != nil {
+		log.Printf("Error during server shutdown: %v", err)
+		return err
 	}
 	log.Println("Server was stopped.")
+	return nil
 }

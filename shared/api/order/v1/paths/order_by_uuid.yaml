@@ -1,0 +1,26 @@
+parameters:
+  - $ref: ../params/order_uuid.yaml
+get:
+  tags:
+    - Order
+  summary: Получить информацию о заказе по UUID
+  operationId: GetInfoOrderByUUID
+  responses:
+    '200':
+      description: Успешный ответ с данными заказа
+      content:
+        application/json:
+          schema:
+            $ref: ../components/order_dto.yaml
+    '404':
+      description: Заказ не найден
+      content:
+        application/json:
+          schema:
+            $ref: ../components/errors/not_found_error.yaml
+    default:
+      description: Неожиданная ошибка
+      content:
+        application/json:
+          schema:
+            $ref: ../components/errors/generic_error.yaml

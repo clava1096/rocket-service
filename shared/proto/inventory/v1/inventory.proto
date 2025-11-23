@@ -1,0 +1,96 @@
+syntax = "proto3";
+
+package inventory.v1;
+
+import "google/protobuf/timestamp.proto";
+
+//option go_package = "github.com/clava1096/rocket-service/shared/proto/inventory/v1;inventoryv1";
+option go_package = "inventory/v1;inventoryv1";
+
+// InventoryService — gRPC-сервис для управления деталями космических кораблей.
+service InventoryService {
+  // GetPart возвращает информацию о детали по её UUID.
+  rpc GetPart(GetPartRequest) returns (GetPartResponse);
+  // ListParts возвращает список деталей с возможностью фильтрации по нескольким полям.
+  rpc ListParts(ListPartsRequest) returns (ListPartsResponse);
+}
+
+// GetPartRequest — запрос для получения детали по UUID.
+message GetPartRequest {
+  string uuid = 1;
+}
+
+// GetPartResponse — ответ, содержащий найденную деталь.
+message GetPartResponse {
+  Part part = 1;
+}
+
+// ListPartsRequest — запрос для получения списка деталей с фильтром.
+message ListPartsRequest {
+  PartsFilter filter = 1;
+}
+
+// ListPartsResponse — ответ, содержащий список найденных деталей.
+message ListPartsResponse {
+  repeated Part parts = 1;
+}
+
+// PartsFilter — фильтр для поиска деталей. Все поля опциональны: если поле пусто — фильтрация по нему не применяется.
+message PartsFilter {
+  repeated string uuids = 1;                    // Список UUID деталей.
+  repeated string names = 2;                    // Список названий деталей.
+  repeated Category categories = 3;             // Список категорий деталей.
+  repeated string manufacturer_countries = 4;   // Список стран производителей.
+  repeated string tags = 5;                     // Список тегов.
+}
+
+// Part — полное описание детали для сборки космического корабля.
+message Part {
+  string uuid = 1;                              // Уникальный идентификатор детали.
+  string name = 2;                              // Название детали.
+  string description = 3;                       // Описание детали.
+  double price = 4;                             // Цена за единицу.
+  int64 stock_quantity = 5;                     // Количество на складе.
+  Category category = 6;                        // Категория детали.
+  Dimensions dimensions = 7;                    // Физические размеры и вес.
+  Manufacturer manufacturer = 8;                // Информация о производителе.
+  repeated string tags = 9;                     // Теги для быстрого поиска.
+  map<string, Value> metadata = 10;             // Гибкие метаданные.
+  google.protobuf.Timestamp created_at = 11;    // Время создания записи.
+  google.protobuf.Timestamp updated_at = 12;    // Время последнего обновления.
+}
+
+// Category — категория детали космического корабля.
+enum Category {
+  CATEGORY_UNSPECIFIED = 0;   // Категория не указана.
+  CATEGORY_ENGINE = 1;        // Двигатель.
+  CATEGORY_FUEL = 2;          // Топливо.
+  CATEGORY_PORTHOLE = 3;      // Иллюминатор.
+  CATEGORY_WING = 4;          // Крыло.
+}
+
+// Dimensions — физические размеры детали и её вес.
+message Dimensions {
+  double length = 1;          // Длина в сантиметрах.
+  double width = 2;           // Ширина в сантиметрах.
+  double height = 3;          // Высота в сантиметрах.
+  double weight = 4;          // Вес в килограммах.
+}
+
+// Manufacturer — информация о производителе детали.
+message Manufacturer {
+  string name = 1;            // Название компании-производителя.
+  string country = 2;         // Страна производства.
+  string website = 3;         // Официальный веб-сайт.
+}
+
+// Value — типизированное значение для гибких метаданных.
+// Поддерживает только одно значение за раз: строку, целое, дробное или логическое.
+message Value {
+  oneof kind {
+    string string_value = 1;  // Строковое значение.
+    int64 int64_value = 2;    // Целочисленное значение.
+    double double_value = 3;  // Дробное значение.
+    bool bool_value = 4;      // Логическое значение.
+  }
+}

@@ -1,0 +1,21 @@
+type: object
+required:
+  - uuid
+  - parts_uuid
+properties:
+  uuid:
+    type: string
+    description: Id пользователя
+    minLength: 1
+    maxLength: 100
+    example: "a1b2c3d4-e5f6-7890-g1h2-i3j4k5l6m7n8"
+  parts_uuid:
+    type: array
+    description: Список UUID деталей из заказа
+    minItems: 1
+    maxItems: 100
+    items:
+      type: string
+      minLength: 1
+      maxLength: 100
+      example: "a1b2c3d4-e5f6-7890-g1h2-i3j4k5l6m7n8"

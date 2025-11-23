@@ -154,7 +154,7 @@ func filterByUUID(parts []*inventoryv1.Part, uuids []string) []*inventoryv1.Part
 }
 
 func main() {
-	lis, err := net.Listen("tcp", grpcPort)
+	lis, err := net.Listen("tcp", "localhost"+grpcPort)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
@@ -169,7 +169,8 @@ func main() {
 	service := &inventoryService{
 		inventory: make(map[string]*inventoryv1.Part),
 	}
-	//Двигатель
+
+	// Двигатель
 	service.inventory["123e4567-e89b-12d3-a456-426614174000"] = &inventoryv1.Part{
 		Uuid:        "123e4567-e89b-12d3-a456-426614174000",
 		Name:        "Main Engine",
@@ -189,7 +190,8 @@ func main() {
 		},
 		Tags: []string{"engine", "thrust", "rocket"},
 	}
-	//Крыло
+
+	// Крыло
 	service.inventory["123e4567-e89b-12d3-a456-426614174001"] = &inventoryv1.Part{
 		Uuid:        "123e4567-e89b-12d3-a456-426614174001",
 		Name:        "Aerodynamic Wing",

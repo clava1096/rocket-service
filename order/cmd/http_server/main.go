@@ -3,8 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	"log"
 	"net"
 	"net/http"
@@ -17,6 +15,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/google/uuid"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	m "github.com/clava1096/rocket-service/order/internal/middleware"
 	orderV1 "github.com/clava1096/rocket-service/shared/pkg/openapi/order/v1"
@@ -112,7 +112,6 @@ func (h *OrderHandler) CreateOrderRequest(ctx context.Context, req *orderV1.Crea
 			Uuids: req.PartsUUID,
 		},
 	})
-
 	if err != nil {
 		log.Printf("Inventory service call failed: %v", err)
 		return &orderV1.InternalServerError{
@@ -154,9 +153,6 @@ func (h *OrderHandler) CreateOrderRequest(ctx context.Context, req *orderV1.Crea
 		Status:     orderV1.OrderStatusPENDINGPAYMENT,
 		TotalPrice: totalPrice,
 	}
-	log.Print(order)
-	log.Print(order.GetOrderUUID())
-
 	if err = h.store.newOrder(order); err != nil {
 		log.Printf("Failed to save order %s: %v", order.GetOrderUUID(), err)
 		return &orderV1.InternalServerError{
@@ -186,7 +182,6 @@ func (h *OrderHandler) OrderPayment(ctx context.Context, req *orderV1.PayOrderRe
 	orderUUID := params.OrderUUID
 	order := h.store.getOrder(orderUUID)
 	if order == nil {
-
 		return &orderV1.NotFoundError{
 			Code:    404,
 			Message: "Order :'" + orderUUID + "' was not found!",
@@ -205,6 +200,11 @@ func (h *OrderHandler) OrderPayment(ctx context.Context, req *orderV1.PayOrderRe
 		UserUuid:      order.GetUserUUID().String(),
 		PaymentMethod: paymentMethod,
 	})
+	if err != nil {
+		return &orderV1.InternalServerError{
+			Message: "Something went wrong",
+		}, nil
+	}
 
 	txnUUID, err := uuid.Parse(payResp.TransactionUuid)
 	if err != nil {
@@ -217,7 +217,7 @@ func (h *OrderHandler) OrderPayment(ctx context.Context, req *orderV1.PayOrderRe
 	order.TransactionUUID = orderV1.NewOptNilUUID(txnUUID)
 	order.PaymentMethod = orderV1.NewOptPaymentMethod(req.PaymentMethod)
 
-	order = h.store.updateOrder(order)
+	h.store.updateOrder(order)
 
 	return &orderV1.PayOrderResponse{TransactionUUID: uuid.MustParse(payResp.TransactionUuid)}, nil
 }
@@ -239,7 +239,7 @@ func convertPaymentMethod(openAPI orderV1.PaymentMethod) (paymentv1.PaymentMetho
 	}
 }
 
-func (h *OrderHandler) NewError(ctx context.Context, err error) *orderV1.GenericErrorStatusCode {
+func (h *OrderHandler) NewError(_ context.Context, err error) *orderV1.GenericErrorStatusCode {
 	return &orderV1.GenericErrorStatusCode{
 		StatusCode: 500,
 		Response: orderV1.GenericError{
@@ -250,35 +250,42 @@ func (h *OrderHandler) NewError(ctx context.Context, err error) *orderV1.Generic
 }
 
 func main() {
+	if err := run(); err != nil {
+		log.Printf("Application failed: %v", err)
+		os.Exit(1)
+	}
+}
+
+func run() error {
 	storage := NewOrderStorage()
 
-	//grpc inventory
+	// Подключение к InventoryService
 	connInventory, err := grpc.NewClient(
-		inventoryGrpcPort,
-		grpc.WithTransportCredentials(insecure.NewCredentials()))
+		"localhost"+inventoryGrpcPort,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
 	if err != nil {
-		log.Printf("failed to connect: %v\n", err)
-		return
+		log.Printf("Failed to connect to inventory service: %v", err)
+		return err
 	}
-
 	defer func() {
 		if cerr := connInventory.Close(); cerr != nil {
-			log.Printf("failed to close connection: %v\n", cerr)
+			log.Printf("Failed to close inventory connection: %v", cerr)
 		}
 	}()
 
-	//grpc payment
+	// Подключение к PaymentService
 	connPayment, err := grpc.NewClient(
-		paymentGrpcPort,
-		grpc.WithTransportCredentials(insecure.NewCredentials()))
+		"localhost"+paymentGrpcPort,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
 	if err != nil {
-		log.Printf("failed to connect: %v\n", err)
-		return
+		log.Printf("Failed to connect to payment service: %v", err)
+		return err
 	}
-
 	defer func() {
 		if cerr := connPayment.Close(); cerr != nil {
-			log.Printf("failed to close connection: %v\n", cerr)
+			log.Printf("Failed to close payment connection: %v", cerr)
 		}
 	}()
 
@@ -288,7 +295,8 @@ func main() {
 
 	storageServer, err := orderV1.NewServer(orderHandler)
 	if err != nil {
-		log.Fatalf("Error creating OpenApi server: %v", err)
+		log.Printf("Error creating OpenAPI server: %v", err)
+		return err
 	}
 
 	r := chi.NewRouter()
@@ -296,7 +304,6 @@ func main() {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(10 * time.Second))
 	r.Use(m.RequestLogger)
-
 	r.Mount("/", storageServer)
 
 	server := &http.Server{
@@ -306,10 +313,9 @@ func main() {
 	}
 
 	go func() {
-		log.Println("Starting server on " + httpPort)
-		err = server.ListenAndServe()
-		if err != nil {
-			log.Fatalf("Error starting HTTP server: %v", err)
+		log.Printf("Starting server on %s", httpPort)
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Printf("HTTP server error: %v", err)
 		}
 	}()
 
@@ -317,12 +323,14 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 	log.Println("Shutting down server...")
+
 	ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
 	defer cancel()
 
-	err = server.Shutdown(ctx)
-	if err != nil {
-		log.Fatalf("Error shutting down server: %v", err)
+	if err := server.Shutdown(ctx); err != nil {
+		log.Printf("Error during server shutdown: %v", err)
+		return err
 	}
 	log.Println("Server was stopped.")
+	return nil
 }

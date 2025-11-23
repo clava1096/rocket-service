@@ -2,15 +2,15 @@ package main
 
 import (
 	"context"
-	"github.com/google/uuid"
-	"google.golang.org/grpc/reflection"
 	"log"
 	"net"
 	"os"
 	"os/signal"
 	"syscall"
 
+	"github.com/google/uuid"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 
 	logger "github.com/clava1096/rocket-service/payment/internal"
 	paymentv1 "github.com/clava1096/rocket-service/shared/pkg/proto/payment/v1"
@@ -32,8 +32,7 @@ func (s *paymentServer) PayOrder(ctx context.Context, payOrder *paymentv1.PayOrd
 }
 
 func main() {
-	lis, err := net.Listen("tcp", grpcPort)
-
+	lis, err := net.Listen("tcp", "localhost"+grpcPort)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}

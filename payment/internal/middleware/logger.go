@@ -1,4 +1,4 @@
-package internal
+package middleware
 
 import (
 	"context"
@@ -23,7 +23,6 @@ func LoggerInterceptor() grpc.UnaryServerInterceptor {
 		resp, err = handler(ctx, req)
 		duration := time.Since(start)
 
-		// Форматируем сообщение в зависимости от результата
 		if err != nil {
 			st, _ := status.FromError(err)
 			log.Printf("❌ Finished gRPC method %s with code %s: %v (took: %v)\n", method, st.Code(), err, duration)

@@ -7,7 +7,7 @@ import (
 	repo "github.com/clava1096/rocket-service/inventory/internal/repository/model"
 )
 
-var _ def.InventoryRepository = (*repository)(nil)
+var _ def.PartRepository = (*repository)(nil)
 
 type repository struct {
 	mu        sync.RWMutex

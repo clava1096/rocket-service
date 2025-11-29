@@ -1,6 +1,6 @@
 module github.com/clava1096/rocket-service/shared
 
-go 1.25.0
+go 1.24.10
 
 replace github.com/clava1096/rocket-service/shared => ../shared
 

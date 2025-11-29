@@ -45,6 +45,6 @@ jobs:
     with:
       modules: ${{ needs.extract-vars.outputs.modules }}
       go-version: ${{ needs.extract-vars.outputs.go-version }}
-      gist-id: "b24a5262fb26224912b1ce527cc39e5b"
+      gist-id: "97c9e67d28aca1cf2de980417fa4227d"
     secrets:
       GIST_SECRET: ${{ secrets.GIST_SECRET }}

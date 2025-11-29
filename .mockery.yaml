@@ -1,0 +1,27 @@
+dir: '{{.InterfaceDir}}/mocks'
+structname: '{{.InterfaceName}}'
+filename: 'mock_{{ .InterfaceName | snakecase }}.go'
+pkgname: mocks
+template: testify
+template-data:
+  boilerplate-file: .mockery_boilerplate_text.txt
+  unroll-variadic: true
+packages:
+  github.com/clava1096/rocket-service/inventory/internal/repository:
+    config:
+      include-interface-regex: .*Repository
+  github.com/clava1096/rocket-service/inventory/internal/service:
+    config:
+      include-interface-regex: .*Service
+  github.com/clava1096/rocket-service/order/internal/client/grpc:
+    config:
+      include-interface-regex: .*Client
+  github.com/clava1096/rocket-service/order/internal/repository:
+    config:
+      include-interface-regex: .*Repository
+  github.com/clava1096/rocket-service/order/internal/service:
+    config:
+      include-interface-regex: .*Service
+  github.com/clava1096/rocket-service/payment/internal/service:
+    config:
+      include-interface-regex: .*Service

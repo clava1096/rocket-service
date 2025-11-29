@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc/reflection"
 
 	inventpryAPI "github.com/clava1096/rocket-service/inventory/internal/api/inventory/v1"
+	logger "github.com/clava1096/rocket-service/inventory/internal/middleware"
 	inventoryRepository "github.com/clava1096/rocket-service/inventory/internal/repository/part"
 	inventoryService "github.com/clava1096/rocket-service/inventory/internal/service/inventory"
 	inventoryv1 "github.com/clava1096/rocket-service/shared/pkg/proto/inventory/v1"
@@ -30,7 +31,8 @@ func main() {
 		}
 	}()
 
-	s := grpc.NewServer()
+	s := grpc.NewServer(
+		grpc.ChainUnaryInterceptor(logger.LoggerInterceptor()))
 	repo := inventoryRepository.NewRepository()
 	service := inventoryService.NewService(repo)
 	api := inventpryAPI.NewAPI(service)

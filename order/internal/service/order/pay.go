@@ -19,6 +19,9 @@ func (s *service) Pay(ctx context.Context, orderUUID string, paymentMethod model
 		return model.Order{}, model.ErrOrderNotPending
 	}
 	transactionUUID, err := s.payment.PayOrder(ctx, orderUUID, order.UserUUID, paymentMethod)
+	if err != nil {
+		return model.Order{}, err
+	}
 
 	order.Status = model.OrderStatusPaid
 	order.TransactionUUID = &transactionUUID

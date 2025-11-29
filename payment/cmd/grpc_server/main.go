@@ -1,38 +1,26 @@
 package main
 
 import (
-	"context"
 	"log"
 	"net"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 
-	logger "github.com/clava1096/rocket-service/payment/internal"
+	v1 "github.com/clava1096/rocket-service/payment/internal/api/payment/v1"
+	logger "github.com/clava1096/rocket-service/payment/internal/middleware"
+	paymentService "github.com/clava1096/rocket-service/payment/internal/service/payment"
 	paymentv1 "github.com/clava1096/rocket-service/shared/pkg/proto/payment/v1"
 )
 
 const grpcPort = ":50052"
 
-type paymentServer struct {
-	paymentv1.UnimplementedPaymentServiceServer
-}
-
-func (s *paymentServer) PayOrder(ctx context.Context, payOrder *paymentv1.PayOrderRequest) (*paymentv1.PayOrderResponse, error) {
-	transactionUuid := uuid.New()
-	log.Printf("Payment uuid: %s | order_uuid: %s | user_uuid: %s | payment_method: %s", transactionUuid,
-		payOrder.OrderUuid,
-		payOrder.UserUuid,
-		payOrder.PaymentMethod.String())
-	return &paymentv1.PayOrderResponse{TransactionUuid: transactionUuid.String()}, nil
-}
-
 func main() {
-	lis, err := net.Listen("tcp", "localhost"+grpcPort)
+	// todo метод не проверяет какие приходят значения, вместо заглушки реализовать полноценный сервис!
+	lis, err := net.Listen("tcp", grpcPort)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
@@ -46,8 +34,9 @@ func main() {
 	s := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(logger.LoggerInterceptor()))
 
-	service := &paymentServer{}
-	paymentv1.RegisterPaymentServiceServer(s, service)
+	service := paymentService.NewService()
+	api := v1.NewAPI(service)
+	paymentv1.RegisterPaymentServiceServer(s, api)
 
 	reflection.Register(s)
 

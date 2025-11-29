@@ -2,8 +2,9 @@ package order
 
 import (
 	"context"
-	"github.com/clava1096/rocket-service/order/internal/model"
 	"time"
+
+	"github.com/clava1096/rocket-service/order/internal/model"
 )
 
 func (s *service) Cancel(ctx context.Context, uuid string) error {

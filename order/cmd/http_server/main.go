@@ -2,8 +2,6 @@ package main
 
 import (
 	"context"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	"log"
 	"net"
 	"net/http"
@@ -14,14 +12,15 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-
-	m "github.com/clava1096/rocket-service/order/internal/middleware"
-	orderRepository "github.com/clava1096/rocket-service/order/internal/repository/order"
-	orderService "github.com/clava1096/rocket-service/order/internal/service/order"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	orderAPI "github.com/clava1096/rocket-service/order/internal/api/order/v1"
 	inventoryv1Client "github.com/clava1096/rocket-service/order/internal/client/grpc/inventory/v1"
 	paymentv1Client "github.com/clava1096/rocket-service/order/internal/client/grpc/payment/v1"
+	m "github.com/clava1096/rocket-service/order/internal/middleware"
+	orderRepository "github.com/clava1096/rocket-service/order/internal/repository/order"
+	orderService "github.com/clava1096/rocket-service/order/internal/service/order"
 	orderV1 "github.com/clava1096/rocket-service/shared/pkg/openapi/order/v1"
 	inventoryv1 "github.com/clava1096/rocket-service/shared/pkg/proto/inventory/v1"
 	paymentv1 "github.com/clava1096/rocket-service/shared/pkg/proto/payment/v1"

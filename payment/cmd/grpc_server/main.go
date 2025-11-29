@@ -1,7 +1,6 @@
 package main
 
 import (
-	"google.golang.org/grpc/reflection"
 	"log"
 	"net"
 	"os"
@@ -9,6 +8,7 @@ import (
 	"syscall"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 
 	v1 "github.com/clava1096/rocket-service/payment/internal/api/payment/v1"
 	logger "github.com/clava1096/rocket-service/payment/internal/middleware"
@@ -19,8 +19,8 @@ import (
 const grpcPort = ":50052"
 
 func main() {
+	// todo метод не проверяет какие приходят значения, вместо заглушки реализовать полноценный сервис!
 	lis, err := net.Listen("tcp", grpcPort)
-
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}

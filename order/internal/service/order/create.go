@@ -4,8 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/clava1096/rocket-service/order/internal/model"
 	"time"
+
+	"github.com/clava1096/rocket-service/order/internal/model"
 )
 
 func (s *service) Create(ctx context.Context, order model.Order) (model.Order, error) {
@@ -17,7 +18,6 @@ func (s *service) Create(ctx context.Context, order model.Order) (model.Order, e
 	parts, err := s.inventory.ListParts(ctx, model.PartsFilter{
 		Uuids: order.PartUUIDs,
 	})
-
 	if err != nil {
 		return model.Order{}, model.ErrPartNotFound
 	}

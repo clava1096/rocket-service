@@ -4,16 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/clava1096/rocket-service/order/internal/model"
+
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	"github.com/clava1096/rocket-service/order/internal/converter"
+	"github.com/clava1096/rocket-service/order/internal/model"
 	orderV1 "github.com/clava1096/rocket-service/shared/pkg/openapi/order/v1"
 )
 
 func (a *api) OrderPayment(ctx context.Context, req *orderV1.PayOrderRequest, params orderV1.OrderPaymentParams) (orderV1.OrderPaymentRes, error) {
-
 	paymentMethod := converter.PaymentMethodFromOpenAPI(req.PaymentMethod)
 
 	// 2. Вызываем сервис
@@ -32,5 +32,4 @@ func (a *api) OrderPayment(ctx context.Context, req *orderV1.PayOrderRequest, pa
 	return &orderV1.PayOrderResponse{
 		TransactionUUID: converter.MustParseUUID(*updatedOrder.TransactionUUID),
 	}, nil
-
 }

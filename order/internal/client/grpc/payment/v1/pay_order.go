@@ -2,12 +2,12 @@ package v1
 
 import (
 	"context"
+
 	"github.com/clava1096/rocket-service/order/internal/model"
 	paymentv1 "github.com/clava1096/rocket-service/shared/pkg/proto/payment/v1"
 )
 
 func (c *client) PayOrder(ctx context.Context, orderUUID, userUUID string, paymentMethod model.PaymentMethod) (string, error) {
-
 	pbMethod := paymentMethodToProto(paymentMethod)
 
 	req := &paymentv1.PayOrderRequest{

@@ -1,9 +1,10 @@
 package converter
 
 import (
+	"github.com/google/uuid"
+
 	"github.com/clava1096/rocket-service/order/internal/model"
 	orderV1 "github.com/clava1096/rocket-service/shared/pkg/openapi/order/v1"
-	"github.com/google/uuid"
 )
 
 // OrderToOpenAPI конвертирует доменную модель заказа в OpenAPI-DTO.

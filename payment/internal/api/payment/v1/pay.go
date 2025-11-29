@@ -2,8 +2,9 @@ package v1
 
 import (
 	"context"
-	paymentv1 "github.com/clava1096/rocket-service/shared/pkg/proto/payment/v1"
 	"log"
+
+	paymentv1 "github.com/clava1096/rocket-service/shared/pkg/proto/payment/v1"
 )
 
 func (a *api) PayOrder(ctx context.Context, payOrder *paymentv1.PayOrderRequest) (*paymentv1.PayOrderResponse, error) {

@@ -3,8 +3,9 @@ package order
 import (
 	"context"
 	"errors"
-	"github.com/clava1096/rocket-service/order/internal/model"
 	"time"
+
+	"github.com/clava1096/rocket-service/order/internal/model"
 )
 
 func (s *service) Pay(ctx context.Context, orderUUID string, paymentMethod model.PaymentMethod) (model.Order, error) {

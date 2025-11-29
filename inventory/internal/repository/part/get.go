@@ -16,5 +16,4 @@ func (r *repository) Get(ctx context.Context, uuid string) (model.Part, error) {
 	}
 
 	return repoConverter.PartFromRepoModel(repoPart), nil
-
 }

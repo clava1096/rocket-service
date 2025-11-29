@@ -2,19 +2,20 @@ package middleware
 
 import (
 	"context"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/status"
 	"log"
 	"path"
 	"time"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/status"
 )
 
 func LoggerInterceptor() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context,
 		req interface{},
 		info *grpc.UnaryServerInfo,
-		handler grpc.UnaryHandler) (resp interface{}, err error) {
-
+		handler grpc.UnaryHandler,
+	) (resp interface{}, err error) {
 		method := path.Base(info.FullMethod)
 
 		log.Printf("Started gRPC method: %s", method)

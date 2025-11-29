@@ -1,10 +1,12 @@
 package converter
 
 import (
+	"time"
+
+	"google.golang.org/protobuf/types/known/timestamppb"
+
 	"github.com/clava1096/rocket-service/inventory/internal/model"
 	inventoryv1 "github.com/clava1096/rocket-service/shared/pkg/proto/inventory/v1"
-	"google.golang.org/protobuf/types/known/timestamppb"
-	"time"
 )
 
 func PartFromProto(p *inventoryv1.Part) model.Part {

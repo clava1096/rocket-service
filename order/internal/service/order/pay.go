@@ -21,7 +21,7 @@ func (s *service) Pay(ctx context.Context, orderUUID string, paymentMethod model
 	transactionUUID, err := s.payment.PayOrder(ctx, orderUUID, order.UserUUID, paymentMethod)
 
 	order.Status = model.OrderStatusPaid
-	order.TransactionUUID = &transactionUUID // ← сохраняем!
+	order.TransactionUUID = &transactionUUID
 	order.PaymentMethod = &paymentMethod
 	order.UpdatedAt = time.Now()
 

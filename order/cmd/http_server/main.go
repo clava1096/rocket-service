@@ -10,20 +10,24 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
-
 	orderAPI "github.com/clava1096/rocket-service/order/internal/api/order/v1"
 	inventoryv1Client "github.com/clava1096/rocket-service/order/internal/client/grpc/inventory/v1"
 	paymentv1Client "github.com/clava1096/rocket-service/order/internal/client/grpc/payment/v1"
+	"github.com/clava1096/rocket-service/order/internal/config"
 	m "github.com/clava1096/rocket-service/order/internal/middleware"
+	"github.com/clava1096/rocket-service/order/internal/migrator"
 	orderRepository "github.com/clava1096/rocket-service/order/internal/repository/order"
 	orderService "github.com/clava1096/rocket-service/order/internal/service/order"
 	orderV1 "github.com/clava1096/rocket-service/shared/pkg/openapi/order/v1"
 	inventoryv1 "github.com/clava1096/rocket-service/shared/pkg/proto/inventory/v1"
 	paymentv1 "github.com/clava1096/rocket-service/shared/pkg/proto/payment/v1"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/stdlib"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 const (
@@ -31,35 +35,34 @@ const (
 	// Таймауты для HTTP-сервера
 	readHeaderTimeout = 5 * time.Second
 	shutdownTimeout   = 10 * time.Second
-	inventoryGrpcPort = ":50051"
-	paymentGrpcPort   = ":50052"
 )
 
 func main() {
-	connInventory, err := grpc.NewClient(
-		inventoryGrpcPort,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
-	if err != nil {
-		log.Fatalf("failed to connect to inventory service: %v", err)
-	}
-	defer connInventory.Close()
+	ctx := context.Background()
+	cfg, err := config.GetConfig()
 
-	rawInventoryClient := inventoryv1.NewInventoryServiceClient(connInventory)
+	if err != nil {
+		log.Fatal("error while loading config:", err)
+	}
+
+	runApp(ctx, cfg)
+}
+
+func runApp(ctx context.Context, cfg *config.Config) {
+	pool := initDatabase(cfg, ctx)
+	defer func() {
+		pool.Close()
+	}()
+
+	initMigration(cfg)
+	rawInventoryClient := initInventory(cfg)
 	inventoryClient := inventoryv1Client.NewClient(rawInventoryClient)
 
-	connPayment, err := grpc.NewClient(
-		paymentGrpcPort,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
-	if err != nil {
-		log.Fatalf("failed to connect to payment service: %v", err)
-	}
-	defer connPayment.Close()
-
-	rawPaymentClient := paymentv1.NewPaymentServiceClient(connPayment)
+	rawPaymentClient := initPayment(cfg)
 	paymentClient := paymentv1Client.NewClient(rawPaymentClient)
-	repo := orderRepository.NewRepository()
+
+	repo := orderRepository.NewRepository(pool) // todo теперь нужно подумать как перекидывать сюда, пул или одно подключение
+	// todo переписать слой репозитория
 	service := orderService.NewService(repo, inventoryClient, paymentClient)
 	api := orderAPI.NewAPI(service)
 
@@ -77,13 +80,13 @@ func main() {
 	r.Mount("/", storageServer)
 
 	server := &http.Server{
-		Addr:              net.JoinHostPort("localhost", httpPort),
+		Addr:              net.JoinHostPort("localhost", cfg.Server.HttpPort),
 		Handler:           r,
 		ReadHeaderTimeout: readHeaderTimeout,
 	}
 
 	go func() {
-		log.Println("Starting server on " + httpPort)
+		log.Println("Starting server on " + cfg.Server.HttpPort)
 		err = server.ListenAndServe()
 		if err != nil {
 			log.Fatalf("Error starting HTTP server: %v", err)
@@ -102,4 +105,69 @@ func main() {
 		log.Fatalf("Error shutting down server: %v", err)
 	}
 	log.Println("Server was stopped.")
+}
+
+func initDatabase(cfg *config.Config, ctx context.Context) *pgxpool.Pool {
+	pool, err := pgxpool.New(ctx, cfg.Postgres.GetPostgresUri())
+
+	if err != nil {
+		log.Fatalf("Error connecting to database: %v", err)
+	}
+
+	err = pool.Ping(ctx)
+
+	if err != nil {
+		log.Fatalf("Error pinging database: %v", err)
+	}
+
+	return pool
+}
+
+func initMigration(cfg *config.Config) {
+	pgxConfig, err := pgx.ParseConfig(cfg.Postgres.GetPostgresUri())
+	if err != nil {
+		log.Fatalf("Error parsing database URI: %v", err)
+	}
+
+	log.Println("Running migrations...")
+	sqlDb := stdlib.OpenDB(*pgxConfig)
+	defer sqlDb.Close()
+
+	migratorRunner := migrator.NewMigrator(sqlDb, cfg.Postgres.MigrationsDir)
+	if err = migratorRunner.Up(); err != nil {
+		log.Fatalf("Error running migrations: %v", err)
+	}
+
+	log.Println("done")
+}
+
+func initInventory(cfg *config.Config) inventoryv1.InventoryServiceClient {
+	connInventory, err := grpc.NewClient(
+		cfg.Server.InventoryGrpcPort,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+
+	if err != nil {
+		log.Fatalf("failed to connect to inventory service: %v", err)
+	}
+	defer connInventory.Close()
+
+	rawInventoryClient := inventoryv1.NewInventoryServiceClient(connInventory)
+
+	return rawInventoryClient
+}
+
+func initPayment(cfg *config.Config) paymentv1.PaymentServiceClient {
+	connPayment, err := grpc.NewClient(
+		cfg.Server.PaymentGrpcPort,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+
+	if err != nil {
+		log.Fatalf("failed to connect to payment service: %v", err)
+	}
+	defer connPayment.Close()
+
+	rawPaymentClient := paymentv1.NewPaymentServiceClient(connPayment)
+	return rawPaymentClient
 }

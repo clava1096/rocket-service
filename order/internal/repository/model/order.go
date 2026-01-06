@@ -1,6 +1,10 @@
 package model
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type OrderStatus string
 
@@ -21,13 +25,13 @@ const (
 )
 
 type Order struct {
-	UUID            string
-	UserUUID        string
-	PartUUIDs       []string
-	TotalPrice      float64
-	Status          OrderStatus
-	TransactionUUID *string        // опционально
-	PaymentMethod   *PaymentMethod // опционально
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
+	UUID            uuid.UUID      `db:"uuid"`
+	UserUUID        uuid.UUID      `db:"user_uuid"`
+	PartUUIDs       []uuid.UUID    `db:"part_uuids"`
+	TotalPrice      float64        `db:"total_price"`
+	Status          OrderStatus    `db:"status"`
+	TransactionUUID *string        `db:"transaction_uuid"`
+	PaymentMethod   *PaymentMethod `db:"payment_method"`
+	CreatedAt       time.Time      `db:"created_at"`
+	UpdatedAt       time.Time      `db:"updated_at"`
 }

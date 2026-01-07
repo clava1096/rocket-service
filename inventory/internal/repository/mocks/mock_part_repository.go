@@ -41,6 +41,72 @@ func (_m *PartRepository) EXPECT() *PartRepository_Expecter {
 	return &PartRepository_Expecter{mock: &_m.Mock}
 }
 
+// Create provides a mock function for the type PartRepository
+func (_mock *PartRepository) Create(ctx context.Context, part model.Part) (model.Part, error) {
+	ret := _mock.Called(ctx, part)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Create")
+	}
+
+	var r0 model.Part
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, model.Part) (model.Part, error)); ok {
+		return returnFunc(ctx, part)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, model.Part) model.Part); ok {
+		r0 = returnFunc(ctx, part)
+	} else {
+		r0 = ret.Get(0).(model.Part)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, model.Part) error); ok {
+		r1 = returnFunc(ctx, part)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// PartRepository_Create_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Create'
+type PartRepository_Create_Call struct {
+	*mock.Call
+}
+
+// Create is a helper method to define mock.On call
+//   - ctx context.Context
+//   - part model.Part
+func (_e *PartRepository_Expecter) Create(ctx interface{}, part interface{}) *PartRepository_Create_Call {
+	return &PartRepository_Create_Call{Call: _e.mock.On("Create", ctx, part)}
+}
+
+func (_c *PartRepository_Create_Call) Run(run func(ctx context.Context, part model.Part)) *PartRepository_Create_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 model.Part
+		if args[1] != nil {
+			arg1 = args[1].(model.Part)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *PartRepository_Create_Call) Return(part1 model.Part, err error) *PartRepository_Create_Call {
+	_c.Call.Return(part1, err)
+	return _c
+}
+
+func (_c *PartRepository_Create_Call) RunAndReturn(run func(ctx context.Context, part model.Part) (model.Part, error)) *PartRepository_Create_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Get provides a mock function for the type PartRepository
 func (_mock *PartRepository) Get(ctx context.Context, uuid string) (model.Part, error) {
 	ret := _mock.Called(ctx, uuid)

@@ -2,7 +2,6 @@ package order
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -10,9 +9,9 @@ import (
 )
 
 func (s *service) Create(ctx context.Context, order model.Order) (model.Order, error) {
-	_, err := s.orderRepository.Get(ctx, order.UUID)
-	if errors.Is(err, model.ErrOrderNotFound) {
-		return model.Order{}, model.ErrOrderNotFound
+	isOrder, _ := s.orderRepository.Get(ctx, order.UUID)
+	if isOrder.UUID != "" {
+		return model.Order{}, model.ErrThisOrderExists
 	}
 
 	parts, err := s.inventory.ListParts(ctx, model.PartsFilter{

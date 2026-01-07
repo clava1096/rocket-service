@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/brianvoe/gofakeit/v7"
+	"github.com/stretchr/testify/mock"
 
 	"github.com/clava1096/rocket-service/order/internal/model"
 )
@@ -14,6 +15,7 @@ func (s *ServiceSuite) TestPay_Success() {
 	paymentMethod := model.PaymentMethodCard
 	transactionUUID := gofakeit.UUID()
 
+	// Исходный заказ
 	order := model.Order{
 		UUID:      uuid,
 		UserUUID:  userUUID,
@@ -26,14 +28,33 @@ func (s *ServiceSuite) TestPay_Success() {
 	s.payClient.On("PayOrder", s.ctx, uuid, userUUID, paymentMethod).
 		Return(transactionUUID, nil)
 
-	updatedOrder, err := s.service.Pay(s.ctx, uuid, paymentMethod)
+	now := time.Now()
+	updatedOrder := model.Order{
+		UUID:            uuid,
+		UserUUID:        userUUID,
+		Status:          model.OrderStatusPaid,
+		PaymentMethod:   &paymentMethod,
+		TransactionUUID: &transactionUUID,
+		UpdatedAt:       now,
+		PartUUIDs:       order.PartUUIDs,
+		TotalPrice:      order.TotalPrice,
+		CreatedAt:       order.CreatedAt,
+	}
+
+	s.orderRepository.On("Update", s.ctx, mock.MatchedBy(func(o model.Order) bool {
+		return o.UUID == updatedOrder.UUID &&
+			o.Status == updatedOrder.Status &&
+			o.TransactionUUID != nil && *o.TransactionUUID == transactionUUID
+	})).Return(updatedOrder, nil)
+
+	result, err := s.service.Pay(s.ctx, uuid, paymentMethod)
 
 	s.NoError(err)
-	s.Equal(uuid, updatedOrder.UUID)
-	s.Equal(model.OrderStatusPaid, updatedOrder.Status)
-	s.Equal(&transactionUUID, updatedOrder.TransactionUUID)
-	s.Equal(&paymentMethod, updatedOrder.PaymentMethod)
-	s.True(updatedOrder.UpdatedAt.After(order.UpdatedAt))
+	s.Equal(uuid, result.UUID)
+	s.Equal(model.OrderStatusPaid, result.Status)
+	s.Equal(&transactionUUID, result.TransactionUUID)
+	s.Equal(&paymentMethod, result.PaymentMethod)
+	s.True(result.UpdatedAt.After(order.UpdatedAt))
 
 	s.orderRepository.AssertExpectations(s.T())
 	s.payClient.AssertExpectations(s.T())

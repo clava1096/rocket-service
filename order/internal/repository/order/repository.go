@@ -1,21 +1,19 @@
 package model
 
 import (
-	"sync"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	def "github.com/clava1096/rocket-service/order/internal/repository"
-	repo "github.com/clava1096/rocket-service/order/internal/repository/model"
 )
 
 var _ def.OrderRepository = (*repository)(nil)
 
 type repository struct {
-	mu     sync.RWMutex
-	orders map[string]*repo.Order
+	db *pgxpool.Pool
 }
 
-func NewRepository() *repository {
+func NewRepository(db *pgxpool.Pool) *repository {
 	return &repository{
-		orders: make(map[string]*repo.Order),
+		db: db,
 	}
 }

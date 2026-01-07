@@ -1,0 +1,13 @@
+services:
+  placeholder:
+    image: alpine
+    command:
+      ["sh", "-c", "echo 'This is a placeholder service' && sleep infinity"]
+    networks:
+      - microservice-net
+
+
+networks:
+  microservice-net:
+    name: microservice-net
+    external: false

@@ -1,0 +1,11 @@
+server:
+  grpc_port: ":50051"
+
+mongodb:
+  init_root_username: "root"
+  init_root_password: "rootpassword"
+  init_database: "inventory-service"
+  port: "27017"
+  host: "localhost"
+  auth_db: "admin"
+  collection: "inventory"

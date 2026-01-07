@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -29,7 +30,8 @@ func (a *api) CreateOrderRequest(ctx context.Context, req *orderV1.CreateOrderRe
 	}
 
 	domainOrder := converter.CreateOrderRequestToModel(req)
-	order, err := a.orderService.Create(ctx, domainOrder)
+	order, err := a.orderService.Create(ctx, domainOrder) // todo в этом методе что-то не так
+	log.Println("order", order)
 	if err != nil {
 		if errors.Is(err, model.ErrPartNotFound) {
 			return &orderV1.BadRequestError{

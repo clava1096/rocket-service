@@ -31,7 +31,6 @@ import (
 )
 
 const (
-	httpPort = "8080"
 	// Таймауты для HTTP-сервера
 	readHeaderTimeout = 5 * time.Second
 	shutdownTimeout   = 10 * time.Second
@@ -55,14 +54,15 @@ func runApp(ctx context.Context, cfg *config.Config) {
 	}()
 
 	initMigration(cfg)
-	rawInventoryClient := initInventory(cfg)
+	inventoryConn, rawInventoryClient := initInventory(cfg)
 	inventoryClient := inventoryv1Client.NewClient(rawInventoryClient)
+	defer inventoryConn.Close()
 
-	rawPaymentClient := initPayment(cfg)
+	paymentConn, rawPaymentClient := initPayment(cfg)
 	paymentClient := paymentv1Client.NewClient(rawPaymentClient)
+	defer paymentConn.Close()
 
-	repo := orderRepository.NewRepository(pool) // todo теперь нужно подумать как перекидывать сюда, пул или одно подключение
-	// todo переписать слой репозитория
+	repo := orderRepository.NewRepository(pool)
 	service := orderService.NewService(repo, inventoryClient, paymentClient)
 	api := orderAPI.NewAPI(service)
 
@@ -141,7 +141,7 @@ func initMigration(cfg *config.Config) {
 	log.Println("done")
 }
 
-func initInventory(cfg *config.Config) inventoryv1.InventoryServiceClient {
+func initInventory(cfg *config.Config) (*grpc.ClientConn, inventoryv1.InventoryServiceClient) {
 	connInventory, err := grpc.NewClient(
 		cfg.Server.InventoryGrpcPort,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
@@ -150,14 +150,13 @@ func initInventory(cfg *config.Config) inventoryv1.InventoryServiceClient {
 	if err != nil {
 		log.Fatalf("failed to connect to inventory service: %v", err)
 	}
-	defer connInventory.Close()
 
 	rawInventoryClient := inventoryv1.NewInventoryServiceClient(connInventory)
 
-	return rawInventoryClient
+	return connInventory, rawInventoryClient
 }
 
-func initPayment(cfg *config.Config) paymentv1.PaymentServiceClient {
+func initPayment(cfg *config.Config) (*grpc.ClientConn, paymentv1.PaymentServiceClient) {
 	connPayment, err := grpc.NewClient(
 		cfg.Server.PaymentGrpcPort,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
@@ -166,8 +165,7 @@ func initPayment(cfg *config.Config) paymentv1.PaymentServiceClient {
 	if err != nil {
 		log.Fatalf("failed to connect to payment service: %v", err)
 	}
-	defer connPayment.Close()
 
 	rawPaymentClient := paymentv1.NewPaymentServiceClient(connPayment)
-	return rawPaymentClient
+	return connPayment, rawPaymentClient
 }

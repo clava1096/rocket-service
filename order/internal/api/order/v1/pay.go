@@ -16,7 +16,6 @@ import (
 func (a *api) OrderPayment(ctx context.Context, req *orderV1.PayOrderRequest, params orderV1.OrderPaymentParams) (orderV1.OrderPaymentRes, error) {
 	paymentMethod := converter.PaymentMethodFromOpenAPI(req.PaymentMethod)
 
-	// 2. Вызываем сервис
 	updatedOrder, err := a.orderService.Pay(ctx, params.OrderUUID, paymentMethod)
 	if err != nil {
 		if errors.Is(err, model.ErrOrderNotFound) {

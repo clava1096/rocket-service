@@ -56,7 +56,7 @@ func runApp(cfg *config.Config, ctx context.Context) {
 		}
 	}()
 
-	repo := inventoryRepository.NewRepository(db, cfg.MongoDb.Collection) // todo тут должно быть подклбючение
+	repo := inventoryRepository.NewRepository(db, cfg.MongoDb.Collection)
 	service := inventoryService.NewService(repo)
 	api := inventoryAPI.NewAPI(service)
 	inventoryv1.RegisterInventoryServiceServer(s, api)

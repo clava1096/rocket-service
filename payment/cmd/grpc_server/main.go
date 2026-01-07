@@ -19,7 +19,6 @@ import (
 const grpcPort = ":50052"
 
 func main() {
-	// todo метод не проверяет какие приходят значения, вместо заглушки реализовать полноценный сервис!
 	lis, err := net.Listen("tcp", grpcPort)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)

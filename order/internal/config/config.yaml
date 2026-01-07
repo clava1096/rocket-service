@@ -1,0 +1,12 @@
+server:
+  http_port: "8080"
+  inventory_grpc_port: ":50051"
+  payment_grpc_port: ":50052"
+
+postgres:
+  host: "localhost"
+  port: "5432"
+  user: "order-service-user"
+  password: "order-service-password"
+  database: "order-service"
+  migrations_dir: "./migrations"

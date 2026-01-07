@@ -5,6 +5,7 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
+
 	"github.com/clava1096/rocket-service/order/internal/model"
 	repoModel "github.com/clava1096/rocket-service/order/internal/repository/model"
 )

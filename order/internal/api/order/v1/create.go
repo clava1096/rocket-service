@@ -30,7 +30,7 @@ func (a *api) CreateOrderRequest(ctx context.Context, req *orderV1.CreateOrderRe
 	}
 
 	domainOrder := converter.CreateOrderRequestToModel(req)
-	order, err := a.orderService.Create(ctx, domainOrder) // todo в этом методе что-то не так
+	order, err := a.orderService.Create(ctx, domainOrder)
 	log.Println("order", order)
 	if err != nil {
 		if errors.Is(err, model.ErrPartNotFound) {

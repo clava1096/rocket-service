@@ -7,10 +7,11 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/jackc/pgx/v5"
+
 	"github.com/clava1096/rocket-service/order/internal/model"
 	converter "github.com/clava1096/rocket-service/order/internal/repository/conveter"
 	repoModel "github.com/clava1096/rocket-service/order/internal/repository/model"
-	"github.com/jackc/pgx/v5"
 )
 
 func (r *repository) Update(ctx context.Context, order model.Order) (model.Order, error) {
@@ -30,7 +31,6 @@ func (r *repository) Update(ctx context.Context, order model.Order) (model.Order
 			payment_method, updated_at, created_at`)
 
 	query, args, err := builderUpdate.ToSql()
-
 	if err != nil {
 		return model.Order{}, repoModel.ErrSqlFailedBuildQuery
 	}
@@ -40,7 +40,6 @@ func (r *repository) Update(ctx context.Context, order model.Order) (model.Order
 		&savedOrder.UUID, &savedOrder.UserUUID, &savedOrder.PartUUIDs,
 		&savedOrder.TotalPrice, &savedOrder.Status, &savedOrder.TransactionUUID,
 		&savedOrder.PaymentMethod, &savedOrder.CreatedAt, &savedOrder.UpdatedAt)
-
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return model.Order{}, model.ErrOrderNotFound

@@ -38,7 +38,6 @@ func GetConfig() (*Config, error) {
 	configPath := filepath.Join(dir, "config.yaml")
 
 	content, err := os.ReadFile(configPath)
-
 	if err != nil {
 		return nil, err
 	}

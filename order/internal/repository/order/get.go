@@ -7,13 +7,13 @@ import (
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
+
 	"github.com/clava1096/rocket-service/order/internal/model"
 	converter "github.com/clava1096/rocket-service/order/internal/repository/conveter"
 	repoModel "github.com/clava1096/rocket-service/order/internal/repository/model"
 )
 
 func (r *repository) Get(ctx context.Context, uuid string) (model.Order, error) {
-
 	builderGet := sq.Select("*").
 		From("orders").
 		PlaceholderFormat(sq.Dollar).
@@ -30,7 +30,6 @@ func (r *repository) Get(ctx context.Context, uuid string) (model.Order, error) 
 		&orderFromTable.TotalPrice, &orderFromTable.Status, &orderFromTable.TransactionUUID,
 		&orderFromTable.PaymentMethod, &orderFromTable.CreatedAt, &orderFromTable.UpdatedAt,
 	)
-
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return model.Order{}, model.ErrOrderNotFound

@@ -1,8 +1,9 @@
 package model
 
 import (
-	def "github.com/clava1096/rocket-service/order/internal/repository"
 	"github.com/jackc/pgx/v5/pgxpool"
+
+	def "github.com/clava1096/rocket-service/order/internal/repository"
 )
 
 var _ def.OrderRepository = (*repository)(nil)

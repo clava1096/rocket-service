@@ -3,7 +3,6 @@ package order
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/clava1096/rocket-service/order/internal/model"
@@ -15,13 +14,9 @@ func (s *service) Create(ctx context.Context, order model.Order) (model.Order, e
 		return model.Order{}, model.ErrThisOrderExists
 	}
 
-	log.Printf("uuids: %v", order.PartUUIDs)
 	parts, err := s.inventory.ListParts(ctx, model.PartsFilter{
 		Uuids: order.PartUUIDs,
 	})
-
-	log.Printf("parts: %v", parts)
-
 	if err != nil {
 		return model.Order{}, model.ErrPartNotFound
 	}

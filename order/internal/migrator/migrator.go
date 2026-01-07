@@ -21,9 +21,8 @@ func NewMigrator(db *sql.DB, migrationDir string) *Migrator {
 }
 
 func (m *Migrator) Up() error {
-	goose.SetLogger(log.New(os.Stdout, "goose: ", log.LstdFlags)) //todo подключить zap logger
+	goose.SetLogger(log.New(os.Stdout, "goose: ", log.LstdFlags)) // todo подключить zap logger
 	err := goose.Up(m.db, m.migrationDir)
-
 	if err != nil {
 		return err
 	}

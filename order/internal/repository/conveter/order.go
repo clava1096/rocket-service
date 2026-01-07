@@ -1,9 +1,10 @@
 package converter
 
 import (
+	"github.com/google/uuid"
+
 	"github.com/clava1096/rocket-service/order/internal/model"
 	repoModel "github.com/clava1096/rocket-service/order/internal/repository/model"
-	"github.com/google/uuid"
 )
 
 // OrderToRepoModel конвертирует доменную модель Order в репозиторную.

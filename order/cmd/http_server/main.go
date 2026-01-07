@@ -10,6 +10,14 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/stdlib"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+
 	orderAPI "github.com/clava1096/rocket-service/order/internal/api/order/v1"
 	inventoryv1Client "github.com/clava1096/rocket-service/order/internal/client/grpc/inventory/v1"
 	paymentv1Client "github.com/clava1096/rocket-service/order/internal/client/grpc/payment/v1"
@@ -21,13 +29,6 @@ import (
 	orderV1 "github.com/clava1096/rocket-service/shared/pkg/openapi/order/v1"
 	inventoryv1 "github.com/clava1096/rocket-service/shared/pkg/proto/inventory/v1"
 	paymentv1 "github.com/clava1096/rocket-service/shared/pkg/proto/payment/v1"
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/jackc/pgx/v5/stdlib"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 const (
@@ -39,7 +40,6 @@ const (
 func main() {
 	ctx := context.Background()
 	cfg, err := config.GetConfig()
-
 	if err != nil {
 		log.Fatal("error while loading config:", err)
 	}
@@ -109,13 +109,11 @@ func runApp(ctx context.Context, cfg *config.Config) {
 
 func initDatabase(cfg *config.Config, ctx context.Context) *pgxpool.Pool {
 	pool, err := pgxpool.New(ctx, cfg.Postgres.GetPostgresUri())
-
 	if err != nil {
 		log.Fatalf("Error connecting to database: %v", err)
 	}
 
 	err = pool.Ping(ctx)
-
 	if err != nil {
 		log.Fatalf("Error pinging database: %v", err)
 	}
@@ -146,7 +144,6 @@ func initInventory(cfg *config.Config) (*grpc.ClientConn, inventoryv1.InventoryS
 		cfg.Server.InventoryGrpcPort,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
-
 	if err != nil {
 		log.Fatalf("failed to connect to inventory service: %v", err)
 	}
@@ -161,7 +158,6 @@ func initPayment(cfg *config.Config) (*grpc.ClientConn, paymentv1.PaymentService
 		cfg.Server.PaymentGrpcPort,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
-
 	if err != nil {
 		log.Fatalf("failed to connect to payment service: %v", err)
 	}

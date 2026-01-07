@@ -6,10 +6,11 @@ import (
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/jackc/pgx/v5/pgconn"
+
 	"github.com/clava1096/rocket-service/order/internal/model"
 	converter "github.com/clava1096/rocket-service/order/internal/repository/conveter"
 	repoModel "github.com/clava1096/rocket-service/order/internal/repository/model"
-	"github.com/jackc/pgx/v5/pgconn"
 )
 
 func (r *repository) Create(ctx context.Context, order model.Order) (model.Order, error) {
@@ -27,7 +28,7 @@ func (r *repository) Create(ctx context.Context, order model.Order) (model.Order
 
 	query, args, err := builderInsert.ToSql()
 	if err != nil {
-		return model.Order{}, repoModel.ErrSqlFailedBuildQuery // todo возможно не будет работать, подумать над тем как отлавливать такие ошибки
+		return model.Order{}, repoModel.ErrSqlFailedBuildQuery
 	}
 
 	var savedOrder repoModel.Order
@@ -36,13 +37,12 @@ func (r *repository) Create(ctx context.Context, order model.Order) (model.Order
 		&savedOrder.UUID, &savedOrder.UserUUID, &savedOrder.PartUUIDs,
 		&savedOrder.TotalPrice, &savedOrder.Status, &savedOrder.TransactionUUID,
 		&savedOrder.PaymentMethod, &savedOrder.CreatedAt, &savedOrder.UpdatedAt)
-
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
 			return model.Order{}, model.ErrThisOrderExists
 		}
-		return model.Order{}, fmt.Errorf("failed to create order: %w", err) //todo не понятно как лучше сделать, возможно лучше передать какие-то туда значения?
+		return model.Order{}, fmt.Errorf("failed to create order: %w", err)
 	}
 
 	return converter.OrderFromRepoModel(savedOrder), nil

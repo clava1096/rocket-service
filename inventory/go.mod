@@ -4,6 +4,7 @@ go 1.25.0
 
 require (
 	github.com/brianvoe/gofakeit/v7 v7.11.0
+	github.com/caarlos0/env/v11 v11.3.1
 	github.com/clava1096/rocket-service/shared v0.0.0-20251123162406-8f4dbf203077
 	github.com/go-faster/errors v0.7.1
 	github.com/google/uuid v1.6.0
@@ -17,6 +18,7 @@ require (
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
+	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/klauspost/compress v1.16.7 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/montanaflynn/stats v0.7.1 // indirect

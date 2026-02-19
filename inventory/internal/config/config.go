@@ -1,57 +1,49 @@
 package config
 
 import (
-	"fmt"
-	"os"
-	"path/filepath"
-	"runtime"
-
-	"gopkg.in/yaml.v3"
+	"github.com/clava1096/rocket-service/inventory/internal/config/env"
+	"github.com/joho/godotenv"
 )
 
-type Config struct {
-	Server  ServerConfig `yaml:"server"`
-	MongoDb MongoDb      `yaml:"mongodb"`
+var appConfig *config
+
+type config struct {
+	Server  InventoryConfig
+	MongoDb Mongo
+	Logger  LoggerConfig
 }
 
-type ServerConfig struct {
-	GrpcPort string `yaml:"grpc_port"`
-}
+func Load(path ...string) error {
+	err := godotenv.Load(path...)
 
-type MongoDb struct {
-	Username   string `yaml:"init_root_username"`
-	Password   string `yaml:"init_root_password"`
-	Database   string `yaml:"init_database"`
-	Port       string `yaml:"port"`
-	Host       string `yaml:"host"`
-	AuthDb     string `yaml:"auth_db"`
-	Collection string `yaml:"collection"`
-}
-
-func GetConfig() (*Config, error) {
-	var config Config
-
-	_, filename, _, _ := runtime.Caller(0)
-	dir := filepath.Dir(filename)
-	configPath := filepath.Join(dir, "config.yaml")
-
-	content, err := os.ReadFile(configPath)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	err = yaml.Unmarshal(content, &config)
+
+	loggerCfg, err := env.NewLoggerConfig()
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return &config, nil
+
+	mongoCfg, err := env.NewMongoConfig()
+	if err != nil {
+		return err
+	}
+
+	inventoryCfg, err := env.NewInventoryEnvGrpc()
+	if err != nil {
+		return err
+	}
+
+	appConfig = &config{
+		Logger:  loggerCfg,
+		MongoDb: mongoCfg,
+		Server:  inventoryCfg,
+	}
+
+	return nil
 }
 
-func (m *MongoDb) GetMongodbUri() string {
-	return fmt.Sprintf("mongodb://%s:%s@%s:%s/%s?authSource=%s",
-		m.Username,
-		m.Password,
-		m.Host,
-		m.Port,
-		m.Database,
-		m.AuthDb)
+func AppConfig() *config {
+	return appConfig
 }

@@ -104,7 +104,7 @@ func (a *App) initGrpcServer(ctx context.Context) error {
 }
 
 func (a *App) runGrpcServer(ctx context.Context) error {
-	platformLogger.Info(ctx, fmt.Sprintf("gRPC InventoryService server listening on %s", config.AppConfig().Server.Address()))
+	platformLogger.Info(ctx, fmt.Sprintf("gRPC InventoryService server listening on %s", config.AppConfig().Payment.Address()))
 	err := a.grpcServer.Serve(a.listener)
 	if err != nil {
 		return err

@@ -4,6 +4,8 @@ go 1.25.0
 
 replace github.com/clava1096/rocket-service/shared => ../shared
 
+replace github.com/clava1096/rocket-service/platform => ../platform
+
 require (
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/brianvoe/gofakeit/v7 v7.11.0
@@ -14,7 +16,6 @@ require (
 	github.com/pressly/goose/v3 v3.26.0
 	github.com/stretchr/testify v1.11.1
 	google.golang.org/grpc v1.77.0
-	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (

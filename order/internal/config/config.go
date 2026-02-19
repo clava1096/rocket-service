@@ -1,60 +1,57 @@
 package config
 
 import (
-	"fmt"
-	"os"
-	"path/filepath"
-	"runtime"
-
-	"gopkg.in/yaml.v3"
+	"github.com/clava1096/rocket-service/order/internal/config/env"
+	"github.com/joho/godotenv"
 )
 
-type Config struct {
-	Server   Server   `yaml:"server"`
-	Postgres Postgres `yaml:"postgres"`
+var appConfig *config
+
+type config struct {
+	Server      OrderConfig
+	Postgres    Postgres
+	GrpcClients GrpcClients
+	Logger      LoggerConfig
 }
 
-type Server struct {
-	HttpPort string `yaml:"http_port"`
+func Load(path ...string) error {
+	err := godotenv.Load(path...)
 
-	InventoryGrpcPort string `yaml:"inventory_grpc_port"`
-	PaymentGrpcPort   string `yaml:"payment_grpc_port"`
-}
-
-type Postgres struct {
-	Host          string `yaml:"host"`
-	Port          string `yaml:"port"`
-	User          string `yaml:"user"`
-	Password      string `yaml:"password"`
-	Database      string `yaml:"database"`
-	MigrationsDir string `yaml:"migrations_dir"`
-}
-
-func GetConfig() (*Config, error) {
-	var config Config
-
-	_, filename, _, _ := runtime.Caller(0)
-	dir := filepath.Dir(filename)
-	configPath := filepath.Join(dir, "config.yaml")
-
-	content, err := os.ReadFile(configPath)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	err = yaml.Unmarshal(content, &config)
+
+	postgresCfg, err := env.NewPostgresConfig()
+
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return &config, nil
+
+	clientsGrpcCfg, err := env.NewGrpcConfig()
+
+	if err != nil {
+		return err
+	}
+
+	orderCfg, err := env.NewServerEnvConfig()
+	if err != nil {
+		return err
+	}
+
+	loggerCfg, err := env.NewLoggerConfig()
+	if err != nil {
+		return err
+	}
+
+	appConfig = &config{
+		Server:      orderCfg,
+		Postgres:    postgresCfg,
+		GrpcClients: clientsGrpcCfg,
+		Logger:      loggerCfg,
+	}
+	return nil
 }
 
-func (p *Postgres) GetPostgresUri() string {
-	return fmt.Sprintf(
-		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
-		p.User,
-		p.Password,
-		p.Host,
-		p.Port,
-		p.Database,
-	)
+func AppConfig() *config {
+	return appConfig
 }

@@ -11,7 +11,7 @@ COPY platform/go.mod platform/go.sum ./platform/
 COPY inventory/go.mod inventory/go.sum ./inventory/
 COPY shared/go.mod shared/go.sum ./shared/
 COPY order/go.mod order/go.sum ./order/
-COPY payment/payment.go.mod payment/go.sum ./payment/
+COPY payment/go.mod payment/go.sum ./payment/
 
 RUN go mod download
 

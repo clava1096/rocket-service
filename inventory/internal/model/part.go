@@ -14,7 +14,7 @@ type Part struct {
 	Tags          []string
 	Metadata      map[string]Value
 	CreatedAt     time.Time
-	UpdatedAt     time.Time
+	UpdatedAt     *time.Time
 }
 
 type Category string

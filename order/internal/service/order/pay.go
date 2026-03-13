@@ -29,5 +29,7 @@ func (s *service) Pay(ctx context.Context, orderUUID string, paymentMethod model
 	order.PaymentMethod = &paymentMethod
 	order.UpdatedAt = time.Now()
 
-	return order, nil
+	updatedOrder, err := s.orderRepository.Update(ctx, order)
+
+	return updatedOrder, nil
 }

@@ -1,6 +1,10 @@
 package model
 
-import "github.com/clava1096/rocket-service/order/internal/model"
+import (
+	"github.com/brianvoe/gofakeit/v7"
+
+	"github.com/clava1096/rocket-service/order/internal/model"
+)
 
 func (s *RepositorySuite) TestUpdate_Success() {
 	order := s.newOrder()
@@ -25,7 +29,7 @@ func (s *RepositorySuite) TestUpdate_Success() {
 
 func (s *RepositorySuite) TestUpdate_OrderNotFound() {
 	order := s.newOrder()
-	order.UUID = "non-existent-uuid"
+	order.UUID = gofakeit.UUID()
 
 	_, err := s.repo.Update(s.ctx, order)
 

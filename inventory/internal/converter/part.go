@@ -9,57 +9,6 @@ import (
 	inventoryv1 "github.com/clava1096/rocket-service/shared/pkg/proto/inventory/v1"
 )
 
-func PartFromProto(p *inventoryv1.Part) model.Part {
-	if p == nil {
-		return model.Part{}
-	}
-
-	// Metadata
-	metadata := make(map[string]model.Value, len(p.Metadata))
-	for k, v := range p.Metadata {
-		metadata[k] = ValueFromProto(v)
-	}
-
-	// Конвертируем enum Category
-	var category model.Category
-	switch p.Category {
-	case inventoryv1.Category_CATEGORY_ENGINE:
-		category = model.CategoryEngine
-	case inventoryv1.Category_CATEGORY_FUEL:
-		category = model.CategoryFuel
-	case inventoryv1.Category_CATEGORY_PORTHOLE:
-		category = model.CategoryPortholes
-	case inventoryv1.Category_CATEGORY_WING:
-		category = model.CategoryWing
-	default:
-		category = model.CategoryUnspecified
-	}
-
-	return model.Part{
-		Uuid:          p.Uuid,
-		Name:          p.Name,
-		Description:   p.Description,
-		Price:         p.Price,
-		StockQuantity: float64(p.StockQuantity),
-		Category:      category,
-		Dimensions: model.Dimensions{
-			Length: p.Dimensions.Length,
-			Width:  p.Dimensions.Width,
-			Height: p.Dimensions.Height,
-			Weight: p.Dimensions.Weight,
-		},
-		Manufacturer: model.Manufacturer{
-			Name:    p.Manufacturer.Name,
-			Country: p.Manufacturer.Country,
-			Website: p.Manufacturer.Website,
-		},
-		Tags:      p.Tags,
-		Metadata:  metadata,
-		CreatedAt: timestampToTime(p.CreatedAt),
-		UpdatedAt: timestampToTime(p.UpdatedAt),
-	}
-}
-
 func ValueFromProto(v *inventoryv1.Value) model.Value {
 	if v == nil {
 		return model.Value{}
@@ -106,7 +55,6 @@ func PartToProto(p model.Part) *inventoryv1.Part {
 	default:
 		category = inventoryv1.Category_CATEGORY_UNSPECIFIED
 	}
-
 	return &inventoryv1.Part{
 		Uuid:          p.Uuid,
 		Name:          p.Name,
@@ -127,7 +75,7 @@ func PartToProto(p model.Part) *inventoryv1.Part {
 		},
 		Tags:      p.Tags,
 		Metadata:  metadata,
-		CreatedAt: timeToTimestamp(p.CreatedAt),
+		CreatedAt: timeToTimestampByValue(p.CreatedAt),
 		UpdatedAt: timeToTimestamp(p.UpdatedAt),
 	}
 }
@@ -147,7 +95,14 @@ func ValueToProto(v model.Value) *inventoryv1.Value {
 	}
 }
 
-func timeToTimestamp(t time.Time) *timestamppb.Timestamp {
+func timeToTimestamp(t *time.Time) *timestamppb.Timestamp {
+	if t == nil || t.IsZero() {
+		return nil
+	}
+	return timestamppb.New(*t)
+}
+
+func timeToTimestampByValue(t time.Time) *timestamppb.Timestamp {
 	if t.IsZero() {
 		return nil
 	}

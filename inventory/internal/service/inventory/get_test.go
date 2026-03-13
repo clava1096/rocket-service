@@ -37,6 +37,7 @@ func (s *ServiceSuite) TestGetSuccess() {
 		}
 	)
 
+	now := time.Now().Truncate(time.Second)
 	expectedPartValue := model.Part{
 		Uuid:          uuid,
 		Name:          name,
@@ -53,8 +54,8 @@ func (s *ServiceSuite) TestGetSuccess() {
 		Manufacturer: manufacturer,
 		Tags:         tags,
 		Metadata:     metadata,
-		CreatedAt:    time.Now().Truncate(time.Second),
-		UpdatedAt:    time.Now().Truncate(time.Second),
+		CreatedAt:    now,
+		UpdatedAt:    &now,
 	}
 
 	s.partRepository.On("Get", s.ctx, uuid).Return(expectedPartValue, nil)

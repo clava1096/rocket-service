@@ -11,6 +11,9 @@ import (
 
 func (s *ServiceSuite) TestListSuccess() {
 	var parts []model.Part
+
+	now := time.Now().Truncate(time.Second)
+
 	for i := 0; i < 3; i++ {
 		part := model.Part{
 			Uuid:          gofakeit.UUID(),
@@ -37,8 +40,8 @@ func (s *ServiceSuite) TestListSuccess() {
 					StringValue: gofakeit.Color(),
 				},
 			},
-			CreatedAt: time.Now().Truncate(time.Second),
-			UpdatedAt: time.Now().Truncate(time.Second),
+			CreatedAt: now,
+			UpdatedAt: &now,
 		}
 		parts = append(parts, part)
 	}

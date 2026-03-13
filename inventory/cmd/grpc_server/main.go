@@ -1,57 +1,59 @@
 package main
 
 import (
-	"log"
-	"net"
-	"os"
+	"context"
+	"fmt"
 	"os/signal"
 	"syscall"
+	"time"
 
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
-
-	inventpryAPI "github.com/clava1096/rocket-service/inventory/internal/api/inventory/v1"
-	logger "github.com/clava1096/rocket-service/inventory/internal/middleware"
-	inventoryRepository "github.com/clava1096/rocket-service/inventory/internal/repository/part"
-	inventoryService "github.com/clava1096/rocket-service/inventory/internal/service/inventory"
-	inventoryv1 "github.com/clava1096/rocket-service/shared/pkg/proto/inventory/v1"
+	"github.com/clava1096/rocket-service/inventory/internal/app"
+	"github.com/clava1096/rocket-service/inventory/internal/config"
+	"github.com/clava1096/rocket-service/platform/pkg/closer"
+	"github.com/clava1096/rocket-service/platform/pkg/logger"
+	"go.uber.org/zap"
 )
 
-const grpcPort = ":50051"
+const (
+	configPath      = ".env"
+	shutdownTimeout = 5 * time.Second
+)
 
 func main() {
-	lis, err := net.Listen("tcp", grpcPort)
+	err := config.Load(configPath)
+
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		panic(fmt.Errorf("failed to load config: %w", err))
 	}
 
-	defer func() {
-		if cerr := lis.Close(); cerr != nil {
-			log.Printf("failed to close listener: %v", cerr)
-		}
-	}()
+	runApp()
+}
 
-	s := grpc.NewServer(
-		grpc.ChainUnaryInterceptor(logger.LoggerInterceptor()))
-	repo := inventoryRepository.NewRepository()
-	service := inventoryService.NewService(repo)
-	api := inventpryAPI.NewAPI(service)
-	inventoryv1.RegisterInventoryServiceServer(s, api)
+func runApp() {
+	appCtx, appCancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer appCancel()
+	defer gracefulShutdown()
 
-	reflection.Register(s)
+	closer.Configure(syscall.SIGINT, syscall.SIGTERM)
 
-	go func() {
-		log.Printf("Starting gRPC server at %s", grpcPort)
-		err = s.Serve(lis)
-		if err != nil {
-			log.Fatalf("failed to serve: %v", err)
-		}
-	}()
+	a, err := app.NewApp(appCtx)
+	if err != nil {
+		logger.Error(appCtx, "cannot init app", zap.Error(err))
+		return
+	}
 
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit
-	log.Println("Shutting down server...")
-	s.GracefulStop()
-	log.Println("Server gracefully stopped")
+	err = a.Run(appCtx)
+	if err != nil {
+		logger.Error(appCtx, "cannot run app", zap.Error(err))
+		return
+	}
+
+}
+
+func gracefulShutdown() {
+	ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+	defer cancel()
+	if err := closer.CloseAll(ctx); err != nil {
+		logger.Error(ctx, "Error while closing App", zap.Error(err))
+	}
 }

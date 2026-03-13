@@ -1,0 +1,36 @@
+services:
+  mongo-inventory:
+    image: ${MONGO_IMAGE_NAME}
+
+    container_name: mongo-inventory
+
+    env_file:
+      .env
+
+    volumes:
+      - mongo_inventory_data:/data/db
+
+    ports:
+      - "${EXTERNAL_MONGO_PORT}:27017"
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "echo 'db.runCommand({ ping: 1 }).ok' | mongosh --quiet -u ${MONGO_INITDB_ROOT_USERNAME} -p ${MONGO_INITDB_ROOT_PASSWORD} --authenticationDatabase ${MONGO_AUTH_DB}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    restart: unless-stopped
+
+    networks:
+      - microservice-net
+
+volumes:
+  mongo_inventory_data:
+
+networks:
+  microservice-net:
+    external: true

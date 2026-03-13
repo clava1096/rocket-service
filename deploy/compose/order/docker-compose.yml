@@ -1,0 +1,32 @@
+services:
+  postgres-order:
+    image: postgres:17.0-alpine3.20
+
+    container_name: postgres-order
+
+    env_file:
+      .env
+
+    volumes:
+      - postgres_order_data:/var/lib/postgresql/data
+
+    ports:
+      - "${EXTERNAL_POSTGRES_PORT}:5432"
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U order-service-user -d order-service"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    restart: unless-stopped
+
+    networks:
+      - microservice-net
+
+volumes:
+  postgres_order_data:
+
+networks:
+  microservice-net:
+    external: true

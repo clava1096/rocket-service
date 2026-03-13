@@ -13,9 +13,9 @@ COPY shared/go.mod shared/go.sum ./shared/
 COPY order/go.mod order/go.sum ./order/
 COPY payment/go.mod payment/go.sum ./payment/
 
-RUN go mod download
+RUN cd order && go mod download
 
-COPY plafrotm ./platform
+COPY platform ./platform
 COPY inventory ./inventory
 COPY shared ./shared
 COPY order ./order
@@ -25,12 +25,12 @@ COPY payment ./payment
 #todo написать wget для этого сервиса вместо grpc_health.
 #RUN chmod +x grpc-health-probe
 
-RUN CGO_ENABLE=0 GOOS=linux GOARCH=amd64 go build -o app-order ./order/cmd/http_server/main.go
+RUN cd order && CGO_ENABLE=0 GOOS=linux GOARCH=amd64 go build -o ../app-order ./cmd/http_server/main.go
 
 
 FROM alpine:3.21.3
 
-RUN addgroup -S addgroup && adduser -S adduser -G appgroup
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 WORKDIR /app
 

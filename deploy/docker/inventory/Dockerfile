@@ -1,4 +1,4 @@
-FROM golang:1.25.0-alpine as builder
+FROM golang:1.25.0-alpine3.21 as builder
 LABEL authors="ant1soc1al"
 
 RUN apk add --no-cache git
@@ -13,24 +13,26 @@ COPY shared/go.mod shared/go.sum ./shared/
 COPY order/go.mod order/go.sum ./order/
 COPY payment/go.mod payment/go.sum ./payment/
 
-RUN go mod download
+RUN cd inventory && go mod download
 
-COPY plafrotm ./platform
+COPY platform ./platform
 COPY inventory ./inventory
 COPY shared ./shared
 COPY order ./order
 COPY payment ./payment
 
-ADD https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/v0.4.37/grpc_health_probe-linux-amd64 ./grpc-health-probe
+#ADD https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/v0.4.46/grpc_health_probe-linux-amd64 ./grpc-health-probe
+COPY bin/grpc_health_probe grpc-health-probe
 
 RUN chmod +x grpc-health-probe
 
-RUN CGO_ENABLE=0 GOOS=linux GOARCH=amd64 go build -o app-inventory ./inventory/cmd/grpc_server/main.go
+RUN cd inventory && CGO_ENABLE=0 GOOS=linux GOARCH=amd64 go build -o ../app-inventory ./cmd/grpc_server/main.go
 
+RUN ls -la inventory/ && cat inventory/go.mod
 
 FROM alpine:3.21.3
 
-RUN addgroup -S addgroup && adduser -S adduser -G appgroup
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 WORKDIR /app
 

@@ -49,3 +49,18 @@ func (r *repository) Update(ctx context.Context, order model.Order) (model.Order
 
 	return converter.OrderFromRepoModel(savedOrder), nil
 }
+
+func (r *repository) UpdateStatus(ctx context.Context, uuid string, status model.OrderStatus) error {
+	builder := sq.Update("orders").
+		PlaceholderFormat(sq.Dollar).
+		Set("status", status).
+		Where(sq.Eq{"uuid": uuid})
+
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return repoModel.ErrSqlFailedBuildQuery
+	}
+
+	_, err = r.db.Exec(ctx, query, args...)
+	return err
+}

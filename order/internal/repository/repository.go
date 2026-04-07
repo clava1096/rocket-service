@@ -11,4 +11,5 @@ type OrderRepository interface {
 	Delete(ctx context.Context, uuid string) error
 	Create(ctx context.Context, order model.Order) (model.Order, error)
 	Update(ctx context.Context, order model.Order) (model.Order, error)
+	UpdateStatus(ctx context.Context, uuid string, status model.OrderStatus) error
 }

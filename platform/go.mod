@@ -10,7 +10,7 @@ require (
 	github.com/testcontainers/testcontainers-go v0.41.0
 	go.mongodb.org/mongo-driver v1.17.6
 	go.uber.org/zap v1.27.1
-	google.golang.org/grpc v1.79.1
+	google.golang.org/grpc v1.79.3
 )
 
 require (

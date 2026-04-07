@@ -9,5 +9,5 @@ type Consumer interface {
 }
 
 type Producer interface {
-	Send(ctx context.Context, msg Message) error
+	Send(ctx context.Context, key, value []byte) error
 }

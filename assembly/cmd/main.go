@@ -13,7 +13,7 @@ import (
 	"go.uber.org/zap"
 )
 
-const configPath = "./deploy/compose/core/.env"
+const configPath = "./deploy/compose/assembly/.env"
 
 func main() {
 	err := config.Load(configPath)

@@ -15,7 +15,7 @@ import (
 )
 
 func (s *service) HandleOrderPaid(ctx context.Context, event model.OrderPaidEvent) error {
-	go s.processAssembly(context.Background(), event)
+	go s.processAssembly(ctx, event)
 	return nil
 }
 

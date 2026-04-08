@@ -14,7 +14,7 @@ vars:
   GOFUMPT_VERSION: 'v0.9.1'
   BUF_VERSION: '1.63.0'
   PROTOC_GEN_GO_VERSION: 'v1.36.6' #v1.36.6
-  PROTOC_GEN_GO_GRPC_VERSION: 'v1.5.4'
+  PROTOC_GEN_GO_GRPC_VERSION: 'v1.5.1'
   OGEN_VERSION: 'v1.18.0'
   YQ_VERSION: 'v4.50.1'
   MOCKERY_VERSION: 'v3.7.0'
@@ -641,6 +641,7 @@ tasks:
   env:generate:
     desc: "Генерирует .env файлы для всех сервисов из шаблонов и единого файла конфигурации"
     deps: [ env:install-envsubst ]
+    shell: bash
     cmds:
       - |
         ENV_FILE="{{.ENVDIR}}/.env"

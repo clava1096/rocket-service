@@ -15,7 +15,7 @@ COPY payment/go.mod payment/go.sum ./payment/
 COPY assembly/go.mod assembly/go.sum ./assembly/
 COPY notification/go.mod notification/go.sum ./notification/
 
-RUN cd order && go mod download
+RUN cd assembly && go mod download
 
 COPY platform ./platform
 COPY inventory ./inventory
@@ -29,7 +29,7 @@ COPY notification/go.mod ./notification
 #todo написать wget для этого сервиса вместо grpc_health.
 #RUN chmod +x grpc-health-probe
 
-RUN cd order && CGO_ENABLE=0 GOOS=linux GOARCH=amd64 go build -o ../app-order ./cmd/http_server/main.go
+RUN cd assembly && CGO_ENABLE=0 GOOS=linux GOARCH=amd64 go build -o ../app-order ./cmd//main.go
 
 
 FROM alpine:3.21.3
@@ -40,12 +40,12 @@ WORKDIR /app
 
 USER appuser
 
-COPY --from=builder /app/app-order .
+COPY --from=builder /app/app-assembly .
 
 #COPY --from=builder /app/grpc-health-probe /bin/grpc-health-probe
 
-COPY deploy/compose/order/.env .env
+COPY deploy/compose/assembly/.env .env
 
 EXPOSE 8080
 
-ENTRYPOINT ["./app-order"]
+ENTRYPOINT ["./app-assembly"]

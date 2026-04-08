@@ -12,6 +12,8 @@ COPY inventory/go.mod inventory/go.sum ./inventory/
 COPY shared/go.mod shared/go.sum ./shared/
 COPY order/go.mod order/go.sum ./order/
 COPY payment/go.mod payment/go.sum ./payment/
+COPY assembly/go.mod assembly/go.sum ./assembly/
+COPY notification/go.mod notification/go.sum ./notification/
 
 RUN cd inventory && go mod download
 
@@ -20,6 +22,8 @@ COPY inventory ./inventory
 COPY shared ./shared
 COPY order ./order
 COPY payment ./payment
+COPY assembly ./assembly
+COPY notification/go.mod ./notification
 
 #ADD https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/v0.4.46/grpc_health_probe-linux-amd64 ./grpc-health-probe
 COPY bin/grpc_health_probe grpc-health-probe

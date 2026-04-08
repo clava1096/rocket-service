@@ -7,4 +7,5 @@ use (
 	./payment
 	./platform
 	./shared
+	./notification
 )

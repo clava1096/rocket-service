@@ -3,7 +3,7 @@ services:
     image: confluentinc/cp-kafka:7.9.0
     container_name: kafka
     ports:
-      - "${KAFKA_EXTERNAL_PORT}: ${KAFKA_EXTERNAL_PORT}"
+      - "${KAFKA_EXTERNAL_PORT}:${KAFKA_EXTERNAL_PORT}"
     env_file:
       - .env
 
@@ -44,13 +44,13 @@ services:
     restart: unless-stopped
 
     networks:
-      - microservice-net
+      - microservices-net
   kafka-ui:
     image: provectuslabs/kafka-ui:v0.7.2
     container_name: kafka-ui
 
     ports:
-      - "${KAFKA_UI_PORT}"
+      - "${KAFKA_UI_PORT}:8080"
 
     env_file:
       - .env

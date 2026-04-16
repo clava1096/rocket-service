@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/clava1096/rocket-service/order/internal/converter"
 	"github.com/clava1096/rocket-service/order/internal/model"
 )
 
@@ -30,6 +31,10 @@ func (s *service) Pay(ctx context.Context, orderUUID string, paymentMethod model
 	order.UpdatedAt = time.Now()
 
 	updatedOrder, err := s.orderRepository.Update(ctx, order)
+
+	orderPaid := converter.DecodeToOrderPaidEvent(order)
+
+	err = s.orderProducerService.ProduceOrderPaid(ctx, orderPaid)
 
 	return updatedOrder, nil
 }

@@ -77,7 +77,7 @@ func (a *App) initDeps(ctx context.Context) error {
 		a.initCloser,
 		a.initMigration,
 		a.initListener,
-		a.runHttpServer,
+		a.initHttpServer,
 	}
 	for _, init := range inits {
 		if err := init(ctx); err != nil {
@@ -90,6 +90,18 @@ func (a *App) initDeps(ctx context.Context) error {
 
 func (a *App) initDi(_ context.Context) error {
 	a.diContainer = NewDIContainer()
+	return nil
+}
+
+func (a *App) runHttpServer(ctx context.Context) error {
+	logger.Info(ctx, "Starting HTTP server", zap.String("address", config.AppConfig().Server.Address()))
+
+	err := a.httpServer.Serve(a.listener)
+
+	if err != nil && !errors.Is(err, http.ErrServerClosed) {
+		return err
+	}
+
 	return nil
 }
 
@@ -146,7 +158,7 @@ func (a *App) initListener(_ context.Context) error {
 	return nil
 }
 
-func (a *App) runHttpServer(ctx context.Context) error {
+func (a *App) initHttpServer(ctx context.Context) error {
 	service := a.diContainer.OrderService(ctx)
 	api := orderAPI.NewAPI(service)
 

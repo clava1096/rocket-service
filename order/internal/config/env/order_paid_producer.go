@@ -6,7 +6,7 @@ import (
 )
 
 type orderAssembledProducerEnvConfig struct {
-	TopicName string `env:"ORDER_ASSEMBLE_TOPIC_NAME,required"`
+	TopicName string `env:"ORDER_PAID_TOPIC_NAME,required"`
 }
 
 type orderAssembledProducerConfig struct {

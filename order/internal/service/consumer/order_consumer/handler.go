@@ -21,7 +21,7 @@ func (s *service) OrderHandler(ctx context.Context, msg kafka.Message) error {
 }
 
 func (s *service) HandleShipAssembled(ctx context.Context, event model.ShipAssembledEvent) error {
-	err := s.orderRepo.UpdateStatus(ctx, event.EventUUID, model.OrderStatusAssembled)
+	err := s.orderRepo.UpdateStatus(ctx, event.OrderUUID, model.OrderStatusAssembled)
 
 	if err != nil {
 		logger.Error(ctx, "Failed to update order status", zap.Error(err))

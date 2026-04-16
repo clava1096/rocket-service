@@ -3,7 +3,7 @@ package env
 import "github.com/caarlos0/env/v11"
 
 type telegramEnvConfig struct {
-	telegramBotToken string `env:"TELEGRAM_BOT_TOKEN, required"`
+	TelegramBotToken string `env:"TELEGRAM_BOT_TOKEN,required"`
 }
 
 type telegramConfig struct {
@@ -21,5 +21,5 @@ func NewTelegramConfig() (*telegramConfig, error) {
 }
 
 func (conf *telegramConfig) Token() string {
-	return conf.raw.telegramBotToken
+	return conf.raw.TelegramBotToken
 }

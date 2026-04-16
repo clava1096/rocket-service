@@ -26,3 +26,7 @@ type OrderAssemblyConsumerConfig interface {
 type KafkaConfig interface {
 	Brokers() []string
 }
+
+type Proxy interface {
+	URL() string
+}

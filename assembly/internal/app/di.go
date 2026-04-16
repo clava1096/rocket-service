@@ -35,7 +35,7 @@ func NewDiContainer() *diContainer {
 
 func (d *diContainer) OrderConsumerService() service.OrderConsumerService {
 	if d.orderConsumerService == nil {
-		d.orderConsumerService = order_consumer.NewService(d.OrderAssemblyConsumer(), d.OrderPaidDecoder())
+		d.orderConsumerService = order_consumer.NewService(d.OrderAssemblyConsumer(), d.orderProducerShipAssembled(), d.OrderPaidDecoder())
 	}
 	return d.orderConsumerService
 }

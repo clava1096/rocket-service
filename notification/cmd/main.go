@@ -14,7 +14,7 @@ import (
 	"go.uber.org/zap"
 )
 
-const configPath = "./deploy/compose/notifiction/.env" //todo добавить dockercompose и .env
+const configPath = "./deploy/compose/notification/.env"
 
 func main() {
 	err := config.Load(configPath)

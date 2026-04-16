@@ -13,10 +13,12 @@ type config struct {
 	OrderAssemblyConsumerConfig OrderAssemblyConsumerConfig
 	OrderPaidConsumerConfig     OrderPaidConsumerConfig
 	TelegramConfig              TelegramConfig
+	ProxyConfig                 Proxy
 }
 
 func Load(path ...string) error {
 	err := godotenv.Load(path...)
+	println()
 
 	if err != nil {
 		return err
@@ -47,12 +49,18 @@ func Load(path ...string) error {
 		return err
 	}
 
+	ProxyCfg, err := env.NewProxyEnvConfig()
+	if err != nil {
+		return err
+	}
+
 	appConfig = &config{
 		KafkaConfig:                 kafkaCfg,
 		LoggerConfig:                loggerCfg,
 		TelegramConfig:              TelegramCfg,
 		OrderPaidConsumerConfig:     orderPaidConsumerCfg,
 		OrderAssemblyConsumerConfig: orderAssemblyConsumerCfg,
+		ProxyConfig:                 ProxyCfg,
 	}
 
 	return nil

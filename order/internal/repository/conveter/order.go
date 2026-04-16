@@ -7,6 +7,18 @@ import (
 	repoModel "github.com/clava1096/rocket-service/order/internal/repository/model"
 )
 
+func PaymentMethodToEnum(status model.OrderStatus) string {
+	switch status {
+	case model.OrderStatusPendingPayment:
+		return "PENDING_PAYMENT"
+	case model.OrderStatusPaid:
+		return "PAID"
+	case model.OrderStatusAssembled:
+		return "ASSEMBLED"
+	}
+	return "CANCELLED"
+}
+
 // OrderToRepoModel конвертирует доменную модель Order в репозиторную.
 // Глубоко копирует все вложенные структуры и коллекции для изоляции слоёв.
 func OrderToRepoModel(order model.Order) repoModel.Order {

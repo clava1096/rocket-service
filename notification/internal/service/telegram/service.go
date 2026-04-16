@@ -17,7 +17,7 @@ var templatesPaid embed.FS
 //go:embed templates/assembled_notification.tmpl
 var templatesAssembled embed.FS
 
-const chatID = 123 //todo придумать механизм чтобы чат айди сохранялись
+const chatID = 0
 
 type paidTemplateData struct {
 	OrderUUID       string

@@ -15,9 +15,10 @@ type service struct {
 	orderPaidDecoder  kafkaConverter.OrderPaidDecoder
 }
 
-func NewService(orderPaidConsumer kafka.Consumer, orderPaidDecoder kafkaConverter.OrderPaidDecoder) *service {
+func NewService(orderPaidConsumer kafka.Consumer, producer kafka.Producer, orderPaidDecoder kafkaConverter.OrderPaidDecoder) *service {
 	return &service{
 		orderPaidConsumer: orderPaidConsumer,
+		producer:          producer,
 		orderPaidDecoder:  orderPaidDecoder,
 	}
 }

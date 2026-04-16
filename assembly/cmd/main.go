@@ -17,10 +17,15 @@ const configPath = "./deploy/compose/assembly/.env"
 
 func main() {
 	err := config.Load(configPath)
+
 	if err != nil {
 		panic(fmt.Errorf("failed to load config: %w", err))
 	}
 
+	runApp()
+}
+
+func runApp() {
 	appCtx, appCancel := context.WithCancel(context.Background())
 	defer appCancel()
 	defer gracefulShutdown()

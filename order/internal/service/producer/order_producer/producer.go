@@ -13,12 +13,12 @@ import (
 )
 
 type service struct {
-	orderAssemblyProducer kafka.Producer
+	orderPaid kafka.Producer
 }
 
-func NewService(orderAssemblyProducer kafka.Producer) *service {
+func NewService(orderPaid kafka.Producer) *service {
 	return &service{
-		orderAssemblyProducer: orderAssemblyProducer,
+		orderPaid: orderPaid,
 	}
 }
 
@@ -38,7 +38,7 @@ func (p *service) ProduceOrderPaid(ctx context.Context, event model.OrderPaidEve
 		return err
 	}
 
-	err = p.orderAssemblyProducer.Send(ctx, []byte(event.OrderUUID), payload)
+	err = p.orderPaid.Send(ctx, []byte(event.OrderUUID), payload)
 
 	if err != nil {
 		logger.Error(ctx, "Failed to publish order payload", zap.Error(err))

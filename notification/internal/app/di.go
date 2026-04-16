@@ -3,6 +3,10 @@ package app
 import (
 	"context"
 	"fmt"
+	"net"
+	"net/http"
+	"net/url"
+	"time"
 
 	"github.com/IBM/sarama"
 	"github.com/clava1096/rocket-service/notification/internal/config"
@@ -15,6 +19,7 @@ import (
 	"github.com/clava1096/rocket-service/platform/pkg/logger"
 	kafkaMiddleware "github.com/clava1096/rocket-service/platform/pkg/middleware/kafka"
 	"github.com/go-telegram/bot"
+	"golang.org/x/net/proxy"
 
 	httpClient "github.com/clava1096/rocket-service/notification/internal/client/http"
 	telegramClient "github.com/clava1096/rocket-service/notification/internal/client/http/telegram"
@@ -82,15 +87,61 @@ func (d *diContainer) TelegramClient() httpClient.TelegramClient {
 	return d.telegramClient
 }
 
+func (d *diContainer) createHTTPClientWithProxy(proxyURLStr string, timeout time.Duration) *http.Client {
+	if proxyURLStr == "" {
+		return &http.Client{
+			Timeout: timeout,
+		}
+	}
+
+	proxyURL, err := url.Parse(proxyURLStr)
+	if err != nil {
+		panic(fmt.Sprintf("invalid proxy URL %q: %v", proxyURLStr, err))
+	}
+
+	dialer, err := proxy.FromURL(proxyURL, proxy.Direct)
+	if err != nil {
+		panic(fmt.Sprintf("failed to create proxy dialer for %q: %v", proxyURLStr, err))
+	}
+
+	transport := &http.Transport{
+		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+			return dialer.Dial(network, addr)
+		},
+		MaxIdleConns:          100,
+		MaxIdleConnsPerHost:   10,
+		IdleConnTimeout:       90 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+	}
+
+	return &http.Client{
+		Transport: transport,
+		Timeout:   timeout,
+	}
+}
+
 func (d *diContainer) TelegramBot() *bot.Bot {
 	if d.telegramBot == nil {
-		b, err := bot.New(config.AppConfig().TelegramConfig.Token())
+		token := config.AppConfig().TelegramConfig.Token()
+		proxyURL := config.AppConfig().ProxyConfig.URL()
+
+		pollTimeout := 30 * time.Second
+		clientTimeout := 120 * time.Second
+
+		client := d.createHTTPClientWithProxy(proxyURL, clientTimeout)
+
+		b, err := bot.New(token,
+			bot.WithHTTPClient(pollTimeout, client),
+			bot.WithCheckInitTimeout(10*time.Second),
+		)
 		if err != nil {
-			panic(fmt.Sprintf("error creating telegram bot: %v", err))
+			println(fmt.Sprintf("error creating telegram bot: %v", err))
+			println(fmt.Sprintf("continue without tg"))
+			return nil
 		}
 
 		d.telegramBot = b
-
 	}
 	return d.telegramBot
 }

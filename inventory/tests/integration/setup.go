@@ -68,7 +68,6 @@ func setupTestEnvironment(ctx context.Context) *TestEnvironment {
 	projectRoot := path.GetProjectRoot()
 
 	appEnv := map[string]string{
-		// todo Переопределяем хост MongoDB для подключения к контейнеру из testcontainers
 		testcontainers.MongoHostKey: generatedMongo.Config().ContainerName,
 	}
 

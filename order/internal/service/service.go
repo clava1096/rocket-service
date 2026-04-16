@@ -15,3 +15,11 @@ type OrderService interface {
 
 	Pay(ctx context.Context, orderUUID string, paymentMethod model.PaymentMethod) (model.Order, error)
 }
+
+type OrderConsumerService interface {
+	RunConsumer(ctx context.Context) error
+}
+
+type OrderProducerService interface {
+	ProduceOrderPaid(ctx context.Context, event model.OrderPaidEvent) error
+}

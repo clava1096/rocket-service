@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	configPath      = ".env"
+	configPath      = "./deploy/compose/inventory/.env"
 	shutdownTimeout = 5 * time.Second
 )
 

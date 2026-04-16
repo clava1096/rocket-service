@@ -11,7 +11,7 @@ type mongoEnvConfig struct {
 	Password     string `env:"MONGO_INITDB_ROOT_PASSWORD,required"`
 	Database     string `env:"MONGO_DATABASE"`
 	Port         string `env:"MONGO_PORT"`
-	ExternalPort string `env:"MONGO_EXTERNAL_PORT"`
+	ExternalPort string `env:"EXTERNAL_MONGO_PORT"`
 	Hostname     string `env:"MONGO_HOSTNAME"`
 	Host         string `env:"MONGO_HOST"`
 	AuthDB       string `env:"MONGO_AUTH_DB"`
@@ -38,7 +38,7 @@ func (mongo *mongoConfig) URI() string {
 		mongo.raw.Username,
 		mongo.raw.Password,
 		mongo.raw.Host,
-		mongo.raw.Port,
+		mongo.raw.ExternalPort,
 		mongo.raw.Database,
 		mongo.raw.AuthDB)
 }

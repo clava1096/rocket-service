@@ -7,6 +7,7 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/clava1096/rocket-service/platform/pkg/logger"
 	"github.com/jackc/pgx/v5"
 
 	"github.com/clava1096/rocket-service/order/internal/model"
@@ -48,4 +49,22 @@ func (r *repository) Update(ctx context.Context, order model.Order) (model.Order
 	}
 
 	return converter.OrderFromRepoModel(savedOrder), nil
+}
+
+func (r *repository) UpdateStatus(ctx context.Context, uuid string, status model.OrderStatus) error {
+
+	builder := sq.Update("orders").
+		PlaceholderFormat(sq.Dollar).
+		Set("status", status).
+		Where(sq.Eq{"uuid": uuid})
+
+	logger.Info(ctx, string(status))
+
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return repoModel.ErrSqlFailedBuildQuery
+	}
+
+	_, err = r.db.Exec(ctx, query, args...)
+	return err
 }

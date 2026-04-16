@@ -3,6 +3,7 @@ package v1
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/clava1096/rocket-service/order/internal/converter"
 	"github.com/clava1096/rocket-service/order/internal/model"
@@ -11,6 +12,7 @@ import (
 
 func (a *api) GetInfoOrderByUUID(ctx context.Context, params orderV1.GetInfoOrderByUUIDParams) (orderV1.GetInfoOrderByUUIDRes, error) {
 	order, err := a.orderService.Get(ctx, params.OrderUUID)
+	fmt.Println(order)
 	if err != nil {
 		if errors.Is(err, model.ErrOrderNotFound) {
 			return &orderV1.NotFoundError{

@@ -45,6 +45,30 @@ func PayOrderRequestToModel(req *orderV1.PayOrderRequest) model.PaymentMethod {
 	return PaymentMethodFromOpenAPI(req.PaymentMethod)
 }
 
+func DecodeToOrderPaidEvent(order model.Order) model.OrderPaidEvent {
+	return model.OrderPaidEvent{
+		EventUUID:     uuid.New().String(),
+		OrderUUID:     order.UUID,
+		UserUUID:      order.UserUUID,
+		PaymentMethod: PaymentMethodToString(order.PaymentMethod),
+	}
+}
+
+func PaymentMethodToString(paymentMethod *model.PaymentMethod) string {
+	switch *paymentMethod {
+	case model.PaymentMethodCreditCard:
+		return "CREDIT_CARD"
+	case model.PaymentMethodCard:
+		return "CARD"
+	case model.PaymentMethodSBP:
+		return "SBP"
+	case model.PaymentMethodInvestorMoney:
+		return "INVESTOR_MONEY"
+	}
+
+	return "UNKNOWN"
+}
+
 // --- Вспомогательные функции ---
 
 func orderStatusToOpenAPI(status model.OrderStatus) orderV1.OrderStatus {
@@ -56,7 +80,7 @@ func orderStatusToOpenAPI(status model.OrderStatus) orderV1.OrderStatus {
 	case model.OrderStatusCancelled:
 		return orderV1.OrderStatusCANCELLED
 	default:
-		return orderV1.OrderStatusPENDINGPAYMENT
+		return orderV1.OrderStatusASSEMBLED
 	}
 }
 

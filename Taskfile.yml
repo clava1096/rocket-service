@@ -14,7 +14,7 @@ vars:
   GOFUMPT_VERSION: 'v0.9.1'
   BUF_VERSION: '1.63.0'
   PROTOC_GEN_GO_VERSION: 'v1.36.6' #v1.36.6
-  PROTOC_GEN_GO_GRPC_VERSION: 'v1.5.4'
+  PROTOC_GEN_GO_GRPC_VERSION: 'v1.5.1'
   OGEN_VERSION: 'v1.18.0'
   YQ_VERSION: 'v4.50.1'
   MOCKERY_VERSION: 'v3.7.0'
@@ -38,10 +38,10 @@ vars:
   NODE_MODULES_DIR: '{{.ROOT_DIR}}/node_modules/.bin'
   REDOCLY: 'npx redocly'  #'{{.NODE_MODULES_DIR}}/redocly'
 
-  OPEN_API_ORDER_V1_BASE: '{{.ROOT_DIR}}/shared/api/order/v1/order.openapi.yaml'
-  OPEN_API_ORDER_V1_BUNDLE: '{{.ROOT_DIR}}/shared/api/bundles/order.openapi.v1.bundle.yaml'
+  OPEN_API_ORDER_V1_BASE: './shared/api/order/v1/order.openapi.yaml' #'{{.ROOT_DIR}}/shared/api/order/v1/order.openapi.yaml'
+  OPEN_API_ORDER_V1_BUNDLE: './shared/api/bundles/order.openapi.v1.bundle.yaml' #'{{.ROOT_DIR}}/shared/api/bundles/order.openapi.v1.bundle.yaml'
 
-  OPEN_API_FILES: '{{.ROOT_DIR}}/shared/api/bundles'
+  OPEN_API_FILES: './shared/api/bundles' #'{{.ROOT_DIR}}/shared/api/bundles'
   COVERAGE_DIR: '{{.ROOT_DIR}}/coverage'
   COVERAGE_FILE: total.out
   ORDER_MIGRATIONS_DIR: './order/migrations'
@@ -409,6 +409,7 @@ tasks:
       - echo "[task] 🛑 Останавливаем Order с зависимостями"
       - docker compose down --volumes
 
+
   up-all:
     desc: Поднять все сервисы по очереди вместе с зависимостями
     cmds:
@@ -551,8 +552,10 @@ tasks:
         
         echo
         echo "📊 Тест 7: Проверка статуса после оплаты (должен быть PAID)"
+        # Ждем небольшую паузу для обновления статуса
+        sleep 1
         ORDER_INFO_RESPONSE=$(curl -s -X GET "http://localhost:8080/api/v1/orders/$ORDER_UUID")
-        
+
         # Извлекаем статус заказа
         ORDER_STATUS=$(echo $ORDER_INFO_RESPONSE | grep -o '"status":"[^"]*' | cut -d'"' -f4)
         if [ -z "$ORDER_STATUS" ]; then
@@ -562,9 +565,30 @@ tasks:
         # Проверяем, что статус стал PAID
         if [[ "$ORDER_STATUS" != *"PAID"* && "$ORDER_STATUS" != *"ASSEMBLED"* ]]; then
           echo "❌ Неверный статус заказа после оплаты. Ожидался PAID или ASSEMBLED, получен: $ORDER_STATUS"
-          exit 1
+          exit 5
         fi
         echo "✅ Статус заказа после оплаты: $ORDER_STATUS"
+        
+        # Если статус PAID, ждем сборку
+        if [[ "$ORDER_STATUS" == *"PAID"* ]]; then
+          echo "Ожидаем сборку заказа (20 секунд)..."
+          sleep 20
+          
+          ORDER_INFO_RESPONSE=$(curl -s -X GET "http://localhost:8080/api/v1/orders/$ORDER_UUID")
+        echo "🔍 DEBUG: Extracted ORDER_INFO_RESPONSE='$ORDER_INFO_RESPONSE'"
+          ORDER_STATUS=$(echo $ORDER_INFO_RESPONSE | grep -o '"status":"[^"]*' | cut -d'"' -f4)
+          if [ -z "$ORDER_STATUS" ]; then
+            ORDER_STATUS=$(echo $ORDER_INFO_RESPONSE | grep -o '"status": "[^"]*' | cut -d'"' -f4)
+          fi
+          
+          # Проверяем, что статус изменился на ASSEMBLED
+          if [[ "$ORDER_STATUS" != *"ASSEMBLED"* ]]; then
+            echo "❌ Статус заказа не изменился на ASSEMBLED после ожидания. Текущий статус: $ORDER_STATUS"
+            exit 1
+          fi
+          
+          echo "✅ Статус заказа после ожидания сборки: $ORDER_STATUS (ожидали ASSEMBLED)"
+        fi
         
         echo
         echo "📝 Тест 8: Создание второго заказа для отмены (REST API)"
@@ -641,6 +665,7 @@ tasks:
   env:generate:
     desc: "Генерирует .env файлы для всех сервисов из шаблонов и единого файла конфигурации"
     deps: [ env:install-envsubst ]
+    shell: bash
     cmds:
       - |
         ENV_FILE="{{.ENVDIR}}/.env"

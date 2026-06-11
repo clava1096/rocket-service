@@ -5,6 +5,7 @@ go 1.25.0
 require (
 	github.com/docker/docker v28.5.2+incompatible
 	github.com/go-faster/errors v0.7.1
+	github.com/gomodule/redigo v1.9.3
 	github.com/jackc/pgx/v5 v5.7.5
 	github.com/testcontainers/testcontainers-go v0.41.0
 	go.mongodb.org/mongo-driver v1.17.6

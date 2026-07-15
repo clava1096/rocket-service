@@ -1,0 +1,9 @@
+💰 *Заказ оплачен*
+
+📦 *Заказ:* `{{.OrderUUID}}`
+👤 *Пользователь:* `{{.UserUUID}}`
+💳 *Оплата:* {{if eq .PaymentMethod "CARD"}}💳{{else if eq .PaymentMethod "SBP"}}📱{{else if eq .PaymentMethod "CRYPTO"}}₿{{else}}💰{{end}} `{{.PaymentMethod}}`
+🔗 *Транзакция:* `{{.TransactionUUID}}`
+⏰ *Оплачено:* `{{.PaidAt.Format "02.01.2006 15:04:05"}}`
+
+_Спасибо за покупку! 🚀_

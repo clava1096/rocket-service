@@ -4,6 +4,7 @@ import (
 	"github.com/clava1096/rocket-service/order/internal/client/grpc"
 	"github.com/clava1096/rocket-service/order/internal/repository"
 	def "github.com/clava1096/rocket-service/order/internal/service"
+	orderService "github.com/clava1096/rocket-service/order/internal/service"
 )
 
 var _ def.OrderService = (*service)(nil)
@@ -11,14 +12,16 @@ var _ def.OrderService = (*service)(nil)
 type service struct {
 	orderRepository repository.OrderRepository
 
-	inventory grpc.InventoryClient
-	payment   grpc.PaymentClient
+	inventory            grpc.InventoryClient
+	payment              grpc.PaymentClient
+	orderProducerService orderService.OrderProducerService
 }
 
-func NewService(orderRepository repository.OrderRepository, inventory grpc.InventoryClient, payment grpc.PaymentClient) *service {
+func NewService(orderRepository repository.OrderRepository, inventory grpc.InventoryClient, payment grpc.PaymentClient, orderProducerService orderService.OrderProducerService) *service {
 	return &service{
 		orderRepository,
 		inventory,
 		payment,
+		orderProducerService,
 	}
 }

@@ -1,5 +1,5 @@
 -- +goose Up
-create type order_status as enum('PENDING_PAYMENT', 'PAID', 'CANCELLED');
+create type order_status as enum('PENDING_PAYMENT', 'PAID', 'CANCELLED', 'ASSEMBLED');
 
 create type order_payment_method as enum('UNKNOWN', 'CARD', 'SBP', 'CREDIT_CARD', 'INVESTOR_MONEY');
 

@@ -8,6 +8,7 @@ const (
 	OrderStatusPendingPayment OrderStatus = "PENDING_PAYMENT"
 	OrderStatusPaid           OrderStatus = "PAID"
 	OrderStatusCancelled      OrderStatus = "CANCELLED"
+	OrderStatusAssembled      OrderStatus = "ASSEMBLED"
 )
 
 type PaymentMethod string
@@ -26,8 +27,8 @@ type Order struct {
 	PartUUIDs       []string
 	TotalPrice      float64
 	Status          OrderStatus
-	TransactionUUID *string        // опционально
-	PaymentMethod   *PaymentMethod // опционально
+	TransactionUUID *string        // optional
+	PaymentMethod   *PaymentMethod // optional
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
 }

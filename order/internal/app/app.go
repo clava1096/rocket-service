@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"errors"
 	"net"
 	"net/http"
 	"time"
@@ -18,6 +17,8 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/stdlib"
+	"github.com/pkg/errors"
+	"go.uber.org/zap"
 )
 
 type App struct {
@@ -38,7 +39,35 @@ func NewApp(ctx context.Context) (*App, error) {
 }
 
 func (a *App) Run(ctx context.Context) error {
-	return a.runHttpServer(ctx)
+	//return a.runHttpServer(ctx)
+	errCh := make(chan error, 2)
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	go func() {
+		if err := a.runConsumer(ctx); err != nil {
+			errCh <- errors.Errorf("consumer crashed: %v", err)
+		}
+	}()
+
+	go func() {
+		if err := a.runHttpServer(ctx); err != nil {
+			errCh <- errors.Errorf("http server crashed: %v", err)
+		}
+	}()
+
+	select {
+	case <-ctx.Done():
+		logger.Info(ctx, "Shutdown signal received")
+	case err := <-errCh:
+		logger.Error(ctx, "Component creshed, shutting down", zap.Error(err))
+		cancel()
+		<-ctx.Done()
+		return err
+	}
+
+	return nil
 }
 
 func (a *App) initDeps(ctx context.Context) error {
@@ -48,7 +77,7 @@ func (a *App) initDeps(ctx context.Context) error {
 		a.initCloser,
 		a.initMigration,
 		a.initListener,
-		a.runHttpServer,
+		a.initHttpServer,
 	}
 	for _, init := range inits {
 		if err := init(ctx); err != nil {
@@ -61,6 +90,18 @@ func (a *App) initDeps(ctx context.Context) error {
 
 func (a *App) initDi(_ context.Context) error {
 	a.diContainer = NewDIContainer()
+	return nil
+}
+
+func (a *App) runHttpServer(ctx context.Context) error {
+	logger.Info(ctx, "Starting HTTP server", zap.String("address", config.AppConfig().Server.Address()))
+
+	err := a.httpServer.Serve(a.listener)
+
+	if err != nil && !errors.Is(err, http.ErrServerClosed) {
+		return err
+	}
+
 	return nil
 }
 
@@ -117,7 +158,7 @@ func (a *App) initListener(_ context.Context) error {
 	return nil
 }
 
-func (a *App) runHttpServer(ctx context.Context) error {
+func (a *App) initHttpServer(ctx context.Context) error {
 	service := a.diContainer.OrderService(ctx)
 	api := orderAPI.NewAPI(service)
 
@@ -143,5 +184,15 @@ func (a *App) runHttpServer(ctx context.Context) error {
 		return a.httpServer.Shutdown(ctx)
 	})
 
+	return nil
+}
+
+func (a *App) runConsumer(ctx context.Context) error {
+	logger.Info(ctx, "Assembly consumer Starting")
+
+	err := a.diContainer.OrderConsumerService(ctx).RunConsumer(ctx)
+	if err != nil {
+		return err
+	}
 	return nil
 }

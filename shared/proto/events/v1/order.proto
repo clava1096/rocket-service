@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package events.v1;
+
+//option go_package = "github.com/clava1096/rocket-service/shared/proto/events/v1;events_v1";
+option go_package="events/v1;events_v1";
+
+// Оплата заказа с сервиса order для assembly
+message OrderPaid {
+  string event_uuid = 1; // Уникальный индентификатор события
+  string order_uuid = 2; // Уникальный индентификатор заказа
+  string user_uuid = 3; // Уникальный индентификатор пользователя
+  string payment_method = 4; // Уникальный индентификатор оплаты заказа
+  string transaction_uuid = 5; // Уникальный индентификатор транзакции
+}
+
+// Завершение фоновой задачи сборки
+message ShipAssembled {
+  string event_uuid = 1; // Уникальный индентификатор события
+  string order_uuid = 2; // Уникальный индентификатор заказа
+  string user_uuid = 3; // Уникальный индентификатор пользователя
+  int64 build_time_sec = 4; // Время сборки заказа
+}

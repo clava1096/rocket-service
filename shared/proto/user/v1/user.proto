@@ -1,0 +1,94 @@
+syntax = "proto3";
+
+package user.v1;
+
+option go_package = "user/v1;userv1";
+
+// UserService управляет регистрацией, аутентификацией и данными пользователей.
+service UserService {
+  // Register регистрирует нового пользователя.
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+
+  // Login аутентифицирует пользователя и создает сессию.
+  rpc Login(LoginRequest) returns (LoginResponse);
+
+  // Whoami возвращает информацию о пользователе по активной сессии.
+  rpc Whoami(WhoamiRequest) returns (WhoamiResponse);
+
+  // GetUser возвращает полную информацию о пользователе по его UUID.
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+}
+
+// RegisterRequest содержит данные для регистрации нового пользователя.
+message RegisterRequest {
+  // Логин пользователя (уникальный идентификатор для входа).
+  string login = 1;
+  // Пароль пользователя (будет захеширован на сервере).
+  string password = 2;
+  // Email пользователя.
+  string email = 3;
+  // Список каналов для уведомлений (telegram, email и т.д.).
+  repeated NotificationMethod notification_methods = 4;
+}
+
+// RegisterResponse содержит UUID созданного пользователя.
+message RegisterResponse {
+  // UUID зарегистрированного пользователя.
+  string user_uuid = 1;
+}
+
+// LoginRequest содержит учетные данные для входа.
+message LoginRequest {
+  // Логин пользователя.
+  string login = 1;
+  // Пароль пользователя.
+  string password = 2;
+}
+
+// LoginResponse содержит идентификатор созданной сессии.
+message LoginResponse {
+  // UUID сессии, который нужно передавать в metadata последующих запросов.
+  string session_uuid = 1;
+}
+
+// WhoamiRequest содержит идентификатор сессии для проверки авторизации.
+message WhoamiRequest {
+  // UUID активной сессии.
+  string session_uuid = 1;
+}
+
+// WhoamiResponse содержит базовую информацию о пользователе.
+message WhoamiResponse {
+  // UUID пользователя.
+  string user_uuid = 1;
+  // Логин пользователя.
+  string login = 2;
+  // Email пользователя.
+  string email = 3;
+}
+
+// GetUserRequest содержит UUID пользователя для получения данных.
+message GetUserRequest {
+  // UUID пользователя.
+  string user_uuid = 1;
+}
+
+// GetUserResponse содержит полную информацию о пользователе.
+message GetUserResponse {
+  // UUID пользователя.
+  string user_uuid = 1;
+  // Логин пользователя.
+  string login = 2;
+  // Email пользователя.
+  string email = 3;
+  // Список настроенных каналов уведомлений.
+  repeated NotificationMethod notification_methods = 4;
+}
+
+// NotificationMethod описывает способ отправки уведомлений пользователю.
+message NotificationMethod {
+  // Имя провайдера (например, "telegram", "email", "push").
+  string provider_name = 1; // Исправлено на snake_case
+  // Адрес получателя (email, chat_id, device_token).
+  string target = 2;
+}

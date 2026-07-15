@@ -7,7 +7,7 @@ import (
 	"net"
 
 	"github.com/clava1096/rocket-service/iam/internal/config"
-	logger "github.com/clava1096/rocket-service/payment/internal/middleware"
+	grpcMiddleware "github.com/clava1096/rocket-service/iam/internal/middleware"
 	"github.com/clava1096/rocket-service/platform/pkg/closer"
 	platformLogger "github.com/clava1096/rocket-service/platform/pkg/logger"
 	iamv1 "github.com/clava1096/rocket-service/shared/pkg/proto/user/v1"
@@ -85,7 +85,7 @@ func (a *App) initListener(_ context.Context) error {
 func (a *App) initGrpcServer(ctx context.Context) error {
 	IamV1API := a.diContainer.IamV1API(ctx)
 	a.grpcServer = grpc.NewServer(
-		grpc.ChainUnaryInterceptor(logger.LoggerInterceptor()))
+		grpc.ChainUnaryInterceptor(grpcMiddleware.LoggerInterceptor()))
 
 	iamv1.RegisterUserServiceServer(a.grpcServer, IamV1API)
 	reflection.Register(a.grpcServer)
